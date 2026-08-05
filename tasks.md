@@ -45,8 +45,8 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 - [x] B-05. Подключить Django REST Framework
 - [x] B-06. Подключить django-filter
 - [x] B-07. Подключить drf-spectacular
-- [ ] B-08. Подключить django-cors-headers
-- [ ] B-09. Настроить базовые URL: `/api/v1/`
+- [x] B-08. Подключить django-cors-headers
+- [x] B-09. Настроить базовые URL: `/api/v1/`
 - [ ] B-10. Сделать health check endpoint
 
 ---
