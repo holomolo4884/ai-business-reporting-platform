@@ -103,12 +103,15 @@ WSGI_APPLICATION = "config.wsgi.application"
 # =====================================
 # Database
 # =====================================
-# Пока оставляем SQLite.
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": env("POSTGRES_DB", default="reporting"),
+        "USER": env("POSTGRES_USER", default="reporting"),
+        "PASSWORD": env("POSTGRES_PASSWORD", default="reporting"),
+        "HOST": env("POSTGRES_HOST", default="localhost"),
+        "PORT": env("POSTGRES_PORT", default="5432"),
     }
 }
 
@@ -206,3 +209,34 @@ CORS_ALLOWED_ORIGINS = env.list(
 # В prod нужно явно указывать разрешённые домены
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
+
+# =====================================
+# Redis / Cache
+# =====================================
+
+REDIS_URL = env("REDIS_URL", default="redis://localhost:6379/0")
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": REDIS_URL,
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "KEY_PREFIX": "reporting",
+    }
+}
+
+# =====================================
+# Celery
+# =====================================
+
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/0")
+CELERY_RESULT_BACKEND = env("CELERY_RESULT_BACKEND", default="redis://localhost:6379/1")
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TIMEZONE = TIME_ZONE
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 300
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
