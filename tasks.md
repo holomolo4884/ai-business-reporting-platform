@@ -42,7 +42,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 - [x] B-02. Создать Django-проект: `django-admin startproject config .`
 - [x] B-03. Создать приложения: accounts, organizations, business_data, metrics, reports, ai, notifications
 - [x] B-04. Настроить settings и чтение переменных из `.env`
-- [ ] B-05. Подключить Django REST Framework
+- [x] B-05. Подключить Django REST Framework
 - [ ] B-06. Подключить django-filter
 - [ ] B-07. Подключить drf-spectacular
 - [ ] B-08. Подключить django-cors-headers
