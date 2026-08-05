@@ -56,7 +56,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 - [x] C-01. Поднять PostgreSQL локально или в Docker
 - [x] C-02. Поднять Redis локально или в Docker
 - [x] C-03. Настроить подключение Django к PostgreSQL
-- [ ] C-04. Установить psycopg
+- [x] C-04. Установить psycopg
 - [ ] C-05. Применить миграции
 - [ ] C-06. Настроить `REDIS_URL`
 - [ ] C-07. Проверить подключение к PostgreSQL и Redis
