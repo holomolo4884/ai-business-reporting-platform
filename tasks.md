@@ -47,7 +47,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 - [x] B-07. Подключить drf-spectacular
 - [x] B-08. Подключить django-cors-headers
 - [x] B-09. Настроить базовые URL: `/api/v1/`
-- [ ] B-10. Сделать health check endpoint
+- [x] B-10. Сделать health check endpoint
 
 ---
 
