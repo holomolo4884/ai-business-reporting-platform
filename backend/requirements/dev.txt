@@ -1,0 +1,16 @@
+-r base.txt
+
+# Testing
+pytest>=8.3
+pytest-django>=4.8
+pytest-cov>=5.0
+factory-boy>=3.3
+faker>=26.0
+
+# Code quality
+ruff>=0.6
+black>=24.8
+mypy>=1.11
+
+# Git hooks
+pre-commit>=3.8
