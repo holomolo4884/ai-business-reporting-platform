@@ -30,9 +30,9 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 - [x] A-06. Зафиксировать версию Python 3.12+
 - [x] A-07. Создать виртуальное окружение
 - [x] A-08. Создать requirements: `base.txt`, `dev.txt`
-- [ ] A-09. Настроить линтеры: ruff, black, опционально mypy
-- [ ] A-10. Настроить pre-commit
-- [ ] A-11. Создать Makefile с командами install, run, test, lint, docker-up
+- [x] A-09. Настроить линтеры: ruff, black, опционально mypy
+- [x] A-10. Настроить pre-commit
+- [x] A-11. Создать Makefile с командами install, run, test, lint, docker-up
 
 ---
 
