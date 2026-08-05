@@ -50,6 +50,7 @@ THIRD_PARTY_APPS = [
     "rest_framework",
     "django_filters",
     "drf_spectacular",
+    "corsheaders",
 ]
 
 LOCAL_APPS = [
@@ -70,6 +71,7 @@ INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -190,3 +192,17 @@ SPECTACULAR_SETTINGS = {
     "COMPONENT_SPLIT_REQUEST": True,
     "SCHEMA_PATH_PREFIX": r"/api/v[0-9]+",
 }
+
+# =====================================
+# CORS
+# =====================================
+
+CORS_ALLOWED_ORIGINS = env.list(
+    "CORS_ALLOWED_ORIGINS",
+    default=[],
+)
+
+# В dev-режиме разрешаем все origins
+# В prod нужно явно указывать разрешённые домены
+if DEBUG:
+    CORS_ALLOW_ALL_ORIGINS = True
