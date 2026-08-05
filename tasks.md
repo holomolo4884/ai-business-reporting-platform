@@ -41,7 +41,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 - [x] B-01. Установить Django 5.x
 - [x] B-02. Создать Django-проект: `django-admin startproject config .`
 - [x] B-03. Создать приложения: accounts, organizations, business_data, metrics, reports, ai, notifications
-- [ ] B-04. Настроить settings и чтение переменных из `.env`
+- [x] B-04. Настроить settings и чтение переменных из `.env`
 - [ ] B-05. Подключить Django REST Framework
 - [ ] B-06. Подключить django-filter
 - [ ] B-07. Подключить drf-spectacular
