@@ -68,7 +68,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 - [x] D-01. Создать кастомную модель User с email
 - [x] D-02. Указать `AUTH_USER_MODEL = "accounts.User"`
 - [x] D-03. Создать и применить миграции для User
-- [ ] D-04. Установить и настроить djangorestframework-simplejwt
+- [x] D-04. Установить и настроить djangorestframework-simplejwt
 - [ ] D-05. Сделать регистрацию: `POST /api/v1/auth/register/`
 - [ ] D-06. Сделать получение токенов: `POST /api/v1/auth/token/`
 - [ ] D-07. Сделать refresh token: `POST /api/v1/auth/token/refresh/`
