@@ -74,7 +74,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 - [x] D-07. Сделать refresh token: `POST /api/v1/auth/token/refresh/`
 - [x] D-08. Сделать endpoint текущего пользователя: `GET /api/v1/auth/me/`
 - [x] D-09. Проверить хэширование паролей
-- [ ] D-10. Протестировать auth
+- [x] D-10. Протестировать auth
 
 ---
 
