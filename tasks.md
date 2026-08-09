@@ -65,16 +65,16 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 
 # D. Пользователи и JWT
 
-- [ ] D-01. Создать кастомную модель User с email
-- [ ] D-02. Указать `AUTH_USER_MODEL = "accounts.User"`
-- [ ] D-03. Создать и применить миграции для User
-- [ ] D-04. Установить и настроить djangorestframework-simplejwt
-- [ ] D-05. Сделать регистрацию: `POST /api/v1/auth/register/`
-- [ ] D-06. Сделать получение токенов: `POST /api/v1/auth/token/`
-- [ ] D-07. Сделать refresh token: `POST /api/v1/auth/token/refresh/`
-- [ ] D-08. Сделать endpoint текущего пользователя: `GET /api/v1/auth/me/`
-- [ ] D-09. Проверить хэширование паролей
-- [ ] D-10. Протестировать auth
+- [x] D-01. Создать кастомную модель User с email
+- [x] D-02. Указать `AUTH_USER_MODEL = "accounts.User"`
+- [x] D-03. Создать и применить миграции для User
+- [x] D-04. Установить и настроить djangorestframework-simplejwt
+- [x] D-05. Сделать регистрацию: `POST /api/v1/auth/register/`
+- [x] D-06. Сделать получение токенов: `POST /api/v1/auth/token/`
+- [x] D-07. Сделать refresh token: `POST /api/v1/auth/token/refresh/`
+- [x] D-08. Сделать endpoint текущего пользователя: `GET /api/v1/auth/me/`
+- [x] D-09. Проверить хэширование паролей
+- [x] D-10. Протестировать auth
 
 ---
 
