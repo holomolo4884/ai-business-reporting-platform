@@ -63,3 +63,73 @@ class OrganizationUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organization
         fields = ("name", "description")
+
+
+class OrganizationMemberSerializer(serializers.ModelSerializer):
+    """Serializer для получения данных участника организации."""
+
+    user_email = serializers.CharField(source="user.email", read_only=True)
+    user_username = serializers.CharField(source="user.username", read_only=True)
+    user_first_name = serializers.CharField(source="user.first_name", read_only=True)
+    user_last_name = serializers.CharField(source="user.last_name", read_only=True)
+
+    class Meta:
+        model = OrganizationMember
+        fields = (
+            "id",
+            "user",
+            "user_email",
+            "user_username",
+            "user_first_name",
+            "user_last_name",
+            "role",
+            "created_at",
+        )
+        read_only_fields = ("id", "user", "created_at")
+
+
+class OrganizationMemberAddSerializer(serializers.Serializer):
+    """Serializer для добавления участника в организацию."""
+
+    email = serializers.EmailField()
+    role = serializers.ChoiceField(
+        choices=OrganizationMember.Role.choices,
+        default=OrganizationMember.Role.MEMBER,
+    )
+
+    def validate_email(self, value):
+        from accounts.models import User
+
+        if not User.objects.filter(email=value).exists():
+            raise serializers.ValidationError(
+                "Пользователь с таким адресом электронной почты не существует."
+            )
+        return value
+
+    def validate(self, data):
+        request = self.context.get("request")
+        organization = self.context.get("organization")
+
+        if request and organization:
+            from accounts.models import User
+
+            user = User.objects.get(email=data["email"])
+
+            # Проверяем, не является ли пользователь уже участником
+            if OrganizationMember.objects.filter(
+                organization=organization,
+                user=user,
+            ).exists():
+                raise serializers.ValidationError(
+                    "Пользователь уже является членом этой организации."
+                )
+
+        return data
+
+
+class OrganizationMemberUpdateSerializer(serializers.ModelSerializer):
+    """Serializer для обновления роли участника."""
+
+    class Meta:
+        model = OrganizationMember
+        fields = ("role",)
