@@ -80,7 +80,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 
 # E. Организации и участники
 
-- [ ] E-01. Создать модель Organization
+- [x] E-01. Создать модель Organization
 - [ ] E-02. Создать модель OrganizationMember
 - [ ] E-03. Добавить роли: owner, admin, member
 - [ ] E-04. Сделать CRUD API для организаций
