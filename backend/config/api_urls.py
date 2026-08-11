@@ -7,4 +7,5 @@ app_name = "api"
 urlpatterns = [
     path("health/", health_check, name="health-check"),
     path("", include("accounts.urls")),
+    path("", include("organizations.urls")),
 ]
