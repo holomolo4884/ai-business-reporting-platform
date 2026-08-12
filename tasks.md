@@ -93,7 +93,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 
 # F. Бизнес-данные
 
-- [ ] F-01. Создать модель Order
+- [x] F-01. Создать модель Order
 - [ ] F-02. Создать модель Expense
 - [ ] F-03. Привязать Order и Expense к Organization
 - [ ] F-04. Добавить статусы заказов: pending, paid, cancelled, refunded
