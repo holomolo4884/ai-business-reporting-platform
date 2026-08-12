@@ -95,10 +95,10 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 
 - [x] F-01. Создать модель Order
 - [x] F-02. Создать модель Expense
-- [ ] F-03. Привязать Order и Expense к Organization
-- [ ] F-04. Добавить статусы заказов: pending, paid, cancelled, refunded
-- [ ] F-05. Добавить индексы по organization_id и датам
-- [ ] F-06. Создать serializers для Order и Expense
+- [x] F-03. Привязать Order и Expense к Organization
+- [x] F-04. Добавить статусы заказов: pending, paid, cancelled, refunded
+- [x] F-05. Добавить индексы по organization_id и датам
+- [x] F-06. Создать serializers для Order и Expense
 - [ ] F-07. Сделать CRUD API для Orders
 - [ ] F-08. Сделать CRUD API для Expenses
 - [ ] F-09. Добавить фильтрацию по датам, статусу, категории
