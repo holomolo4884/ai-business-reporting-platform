@@ -99,7 +99,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 - [x] F-04. Добавить статусы заказов: pending, paid, cancelled, refunded
 - [x] F-05. Добавить индексы по organization_id и датам
 - [x] F-06. Создать serializers для Order и Expense
-- [ ] F-07. Сделать CRUD API для Orders
+- [x] F-07. Сделать CRUD API для Orders
 - [ ] F-08. Сделать CRUD API для Expenses
 - [ ] F-09. Добавить фильтрацию по датам, статусу, категории
 - [ ] F-10. Добавить пагинацию
