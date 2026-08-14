@@ -41,9 +41,14 @@ class Command(BaseCommand):
         clear = options["clear"]
 
         self.stdout.write(self.style.NOTICE("Начинаем генерацию демо-данных..."))
+        self.stdout.write(
+            f"  Параметры: orders={orders_count}, expenses={expenses_count}, days={days}, clear={clear}"
+        )
+        self.stdout.write("")
 
         if clear:
             self._clear_existing_data()
+            self.stdout.write("")
 
         # Создаём demo пользователя (G-03)
         user = self._create_demo_user()
@@ -51,16 +56,38 @@ class Command(BaseCommand):
         # Создаём demo организацию (G-04)
         organization = self._create_demo_organization(user)
 
+        self.stdout.write("")
+
         # Генерируем заказы (G-05)
         self._generate_orders(organization, orders_count, days)
 
         # Генерируем расходы (G-06)
         self._generate_expenses(organization, expenses_count, days)
 
+        # Итоговая статистика
+        self.stdout.write("")
+        self.stdout.write(self.style.SUCCESS("=" * 60))
         self.stdout.write(self.style.SUCCESS("Генерация демо-данных завершена!"))
-        self.stdout.write(f"  Создано заказов: {orders_count}")
-        self.stdout.write(f"  Создано расходов: {expenses_count}")
-        self.stdout.write(f"  Период: последние {days} дней")
+        self.stdout.write(self.style.SUCCESS("=" * 60))
+        self.stdout.write(f"  Пользователь: {user.email if user else 'N/A'}")
+        self.stdout.write("  Пароль: demo123456")
+        self.stdout.write(f"  Организация: {organization.name if organization else 'N/A'}")
+        self.stdout.write("")
+        self.stdout.write(
+            f"  Заказов в организации: {organization.orders.count() if organization else 0}"
+        )
+        self.stdout.write(
+            f"  Расходов в организации: {organization.expenses.count() if organization else 0}"
+        )
+        self.stdout.write(f"  Период данных: последние {days} дней")
+        self.stdout.write("")
+        self.stdout.write(self.style.SUCCESS("Для получения токена выполните:"))
+        self.stdout.write("  curl -X POST http://127.0.0.1:8000/api/v1/auth/token/ \\")
+        self.stdout.write('    -H "Content-Type: application/json" \\')
+        self.stdout.write(
+            f'    -d \'{{"email": "{user.email if user else "demo@example.com"}", "password": "demo123456"}}\''
+        )
+        self.stdout.write(self.style.SUCCESS("=" * 60))
 
     def _get_realistic_date(self, days, now):
         """
