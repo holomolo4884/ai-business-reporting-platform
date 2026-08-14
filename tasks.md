@@ -122,16 +122,16 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 
 # H. Модель отчётов
 
-- [ ] H-01. Создать модель Report
-- [ ] H-02. Добавить report_type: sales, finance, custom
-- [ ] H-03. Добавить статусы: pending, collecting_data, calling_ai, completed, failed
-- [ ] H-04. Добавить period_start и period_end
-- [ ] H-05. Добавить поле metrics как JSONField
-- [ ] H-06. Добавить поле ai_response как JSONField
-- [ ] H-07. Добавить поле generated_text
-- [ ] H-08. Добавить поле error
-- [ ] H-09. Добавить поле pdf_file
-- [ ] H-10. Создать и применить миграции для Report
+- [x] H-01. Создать модель Report
+- [x] H-02. Добавить report_type: sales, finance, custom
+- [x] H-03. Добавить статусы: pending, collecting_data, calling_ai, completed, failed
+- [x] H-04. Добавить period_start и period_end
+- [x] H-05. Добавить поле metrics как JSONField
+- [x] H-06. Добавить поле ai_response как JSONField
+- [x] H-07. Добавить поле generated_text
+- [x] H-08. Добавить поле error
+- [x] H-09. Добавить поле pdf_file
+- [x] H-10. Создать и применить миграции для Report
 
 ---
 
