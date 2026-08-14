@@ -62,6 +62,66 @@ class Command(BaseCommand):
         self.stdout.write(f"  Создано расходов: {expenses_count}")
         self.stdout.write(f"  Период: последние {days} дней")
 
+    def _get_realistic_date(self, days, now):
+        """
+        Генерирует дату с реалистичным распределением.
+
+        Если days >= 90:
+          - 50% данных за последние 30 дней
+          - 30% данных за 30-60 дней
+          - 20% данных за 60-90 дней
+
+        Если days >= 60:
+          - 70% данных за последние 30 дней
+          - 30% данных за 30-60 дней
+
+        Если days >= 30:
+          - 80% данных за последние 15 дней
+          - 20% данных за 15-30 дней
+
+        Иначе равномерное распределение.
+        """
+        from datetime import timedelta
+
+        random_hours = self.fake.random_int(min=0, max=23)
+        random_minutes = self.fake.random_int(min=0, max=59)
+
+        if days >= 90:
+            # Распределение: 50% / 30% / 20%
+            weight = self.fake.random_int(min=1, max=100)
+            if weight <= 50:
+                # Последние 30 дней
+                random_days = self.fake.random_int(min=0, max=29)
+            elif weight <= 80:
+                # 30-60 дней назад
+                random_days = self.fake.random_int(min=30, max=59)
+            else:
+                # 60-90 дней назад
+                random_days = self.fake.random_int(min=60, max=89)
+        elif days >= 60:
+            # Распределение: 70% / 30%
+            weight = self.fake.random_int(min=1, max=100)
+            if weight <= 70:
+                # Последние 30 дней
+                random_days = self.fake.random_int(min=0, max=29)
+            else:
+                # 30-60 дней назад
+                random_days = self.fake.random_int(min=30, max=min(days - 1, 59))
+        elif days >= 30:
+            # Распределение: 80% / 20%
+            weight = self.fake.random_int(min=1, max=100)
+            if weight <= 80:
+                # Последние 15 дней
+                random_days = self.fake.random_int(min=0, max=14)
+            else:
+                # 15-30 дней назад
+                random_days = self.fake.random_int(min=15, max=29)
+        else:
+            # Равномерное распределение для коротких периодов
+            random_days = self.fake.random_int(min=0, max=max(days - 1, 0))
+
+        return now - timedelta(days=random_days, hours=random_hours, minutes=random_minutes)
+
     def _clear_existing_data(self):
         """Очищает существующие демо-данные."""
         from business_data.models import Expense, Order
@@ -141,8 +201,7 @@ class Command(BaseCommand):
         return organization
 
     def _generate_orders(self, organization, count, days):
-        """Генерирует заказы."""
-        from datetime import timedelta
+        """Генерирует заказы с реалистичным распределением по датам."""
 
         from django.utils import timezone
 
@@ -152,7 +211,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("  Организация не найдена, пропускаем заказы"))
             return
 
-        self.stdout.write(f"  Генерируем {count} заказов...")
+        self.stdout.write(f"  Генерируем {count} заказов за {days} дней...")
 
         now = timezone.now()
         orders = []
@@ -175,10 +234,8 @@ class Command(BaseCommand):
         ]
 
         for _ in range(count):
-            # Случайная дата за последние N дней
-            random_days = self.fake.random_int(min=0, max=days)
-            random_hours = self.fake.random_int(min=0, max=23)
-            order_date = now - timedelta(days=random_days, hours=random_hours)
+            # Реалистичное распределение: больше данных за последние дни
+            order_date = self._get_realistic_date(days, now)
 
             order = Order(
                 organization=organization,
@@ -200,8 +257,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"  Создано заказов: {len(orders)}"))
 
     def _generate_expenses(self, organization, count, days):
-        """Генерирует расходы."""
-        from datetime import timedelta
+        """Генерирует расходы с реалистичным распределением по датам."""
 
         from django.utils import timezone
 
@@ -211,7 +267,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.WARNING("  Организация не найдена, пропускаем расходы"))
             return
 
-        self.stdout.write(f"  Генерируем {count} расходов...")
+        self.stdout.write(f"  Генерируем {count} расходов за {days} дней...")
 
         now = timezone.now()
         expenses = []
@@ -243,18 +299,14 @@ class Command(BaseCommand):
         ]
 
         for _ in range(count):
-            # Случайная дата за последние N дней
-            random_days = self.fake.random_int(min=0, max=days)
-            random_hours = self.fake.random_int(min=0, max=23)
-            expense_date = now - timedelta(days=random_days, hours=random_hours)
+            # Реалистичное распределение: больше данных за последние дни
+            expense_date = self._get_realistic_date(days, now)
 
             # Случайная категория
             category = self.fake.random_element(categories)
 
             # Сумма в зависимости от категории
             min_amount, max_amount = category_ranges[category]
-
-            # Расчёт правильного количества цифр слева
             max_len = max(len(str(int(min_amount))), len(str(int(max_amount))))
 
             amount = self.fake.pydecimal(
