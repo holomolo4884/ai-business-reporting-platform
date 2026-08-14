@@ -106,10 +106,39 @@ class Command(BaseCommand):
         return user
 
     def _create_demo_organization(self, user):
-        """Создаёт демо-организацию."""
-        # Реализация в G-04
-        self.stdout.write("  Создаём демо-организацию...")
-        return None
+        """Создаёт demo организацию и добавляет пользователя как владельца."""
+        from organizations.models import Organization, OrganizationMember
+
+        name = "Demo Company"
+        description = "Демо-организация для разработки и тестирования"
+
+        organization, created = Organization.objects.get_or_create(
+            name=name,
+            defaults={
+                "description": description,
+            },
+        )
+
+        if created:
+            self.stdout.write(self.style.SUCCESS(f"  Создана организация: {name}"))
+        else:
+            self.stdout.write(f"  Организация уже существует: {name}")
+
+        # Добавляем пользователя как владельца
+        member, member_created = OrganizationMember.objects.get_or_create(
+            organization=organization,
+            user=user,
+            defaults={
+                "role": OrganizationMember.Role.OWNER,
+            },
+        )
+
+        if member_created:
+            self.stdout.write(f"  Пользователь {user.email} добавлен как владелец")
+        else:
+            self.stdout.write(f"  Пользователь {user.email} уже является участником")
+
+        return organization
 
     def _generate_orders(self, organization, count, days):
         """Генерирует заказы."""
