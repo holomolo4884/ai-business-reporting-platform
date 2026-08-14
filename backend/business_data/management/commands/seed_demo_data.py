@@ -142,8 +142,62 @@ class Command(BaseCommand):
 
     def _generate_orders(self, organization, count, days):
         """Генерирует заказы."""
-        # Реализация в G-05
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from business_data.models import Currency, Order
+
+        if organization is None:
+            self.stdout.write(self.style.WARNING("  Организация не найдена, пропускаем заказы"))
+            return
+
         self.stdout.write(f"  Генерируем {count} заказов...")
+
+        now = timezone.now()
+        orders = []
+
+        statuses = [
+            Order.Status.PAID,
+            Order.Status.PAID,
+            Order.Status.PAID,
+            Order.Status.PENDING,
+            Order.Status.CANCELLED,
+            Order.Status.REFUNDED,
+        ]
+
+        currencies = [
+            Currency.USD,
+            Currency.USD,
+            Currency.USD,
+            Currency.EUR,
+            Currency.RUB,
+        ]
+
+        for _ in range(count):
+            # Случайная дата за последние N дней
+            random_days = self.fake.random_int(min=0, max=days)
+            random_hours = self.fake.random_int(min=0, max=23)
+            order_date = now - timedelta(days=random_days, hours=random_hours)
+
+            order = Order(
+                organization=organization,
+                amount=self.fake.pydecimal(
+                    left_digits=4,
+                    right_digits=2,
+                    positive=True,
+                    min_value=10,
+                    max_value=5000,
+                ),
+                currency=self.fake.random_element(currencies),
+                status=self.fake.random_element(statuses),
+                description=self.fake.sentence(nb_words=6),
+                order_date=order_date,
+            )
+            orders.append(order)
+
+        Order.objects.bulk_create(orders)
+        self.stdout.write(self.style.SUCCESS(f"  Создано заказов: {len(orders)}"))
 
     def _generate_expenses(self, organization, count, days):
         """Генерирует расходы."""
