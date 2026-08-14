@@ -1,6 +1,7 @@
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 
+from business_data.filters import ExpenseFilter, OrderFilter
 from business_data.models import Expense, Order
 from business_data.serializers import (
     ExpenseCreateSerializer,
@@ -16,6 +17,7 @@ class OrderViewSet(viewsets.ModelViewSet):
     """ViewSet для управления заказами."""
 
     permission_classes = [IsAuthenticated]
+    filterset_class = OrderFilter
     ordering_fields = ["order_date", "amount", "created_at"]
     ordering = ["-order_date"]
 
@@ -36,6 +38,7 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     """ViewSet для управления расходами."""
 
     permission_classes = [IsAuthenticated]
+    filterset_class = ExpenseFilter
     ordering_fields = ["expense_date", "amount", "created_at"]
     ordering = ["-expense_date"]
 
