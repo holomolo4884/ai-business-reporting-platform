@@ -201,5 +201,79 @@ class Command(BaseCommand):
 
     def _generate_expenses(self, organization, count, days):
         """Генерирует расходы."""
-        # Реализация в G-06
+        from datetime import timedelta
+
+        from django.utils import timezone
+
+        from business_data.models import Currency, Expense
+
+        if organization is None:
+            self.stdout.write(self.style.WARNING("  Организация не найдена, пропускаем расходы"))
+            return
+
         self.stdout.write(f"  Генерируем {count} расходов...")
+
+        now = timezone.now()
+        expenses = []
+
+        # Диапазоны сумм для каждой категории
+        category_ranges = {
+            Expense.Category.RENT: (1000, 5000),
+            Expense.Category.SALARY: (5000, 50000),
+            Expense.Category.MARKETING: (100, 5000),
+            Expense.Category.UTILITIES: (100, 1000),
+            Expense.Category.EQUIPMENT: (500, 10000),
+            Expense.Category.SOFTWARE: (50, 500),
+            Expense.Category.TRAVEL: (200, 5000),
+            Expense.Category.OTHER: (50, 2000),
+        }
+
+        # Категории с разной частотой появления
+        categories = [
+            Expense.Category.RENT,
+            Expense.Category.SALARY,
+            Expense.Category.MARKETING,
+            Expense.Category.MARKETING,
+            Expense.Category.UTILITIES,
+            Expense.Category.SOFTWARE,
+            Expense.Category.SOFTWARE,
+            Expense.Category.TRAVEL,
+            Expense.Category.EQUIPMENT,
+            Expense.Category.OTHER,
+        ]
+
+        for _ in range(count):
+            # Случайная дата за последние N дней
+            random_days = self.fake.random_int(min=0, max=days)
+            random_hours = self.fake.random_int(min=0, max=23)
+            expense_date = now - timedelta(days=random_days, hours=random_hours)
+
+            # Случайная категория
+            category = self.fake.random_element(categories)
+
+            # Сумма в зависимости от категории
+            min_amount, max_amount = category_ranges[category]
+
+            # Расчёт правильного количества цифр слева
+            max_len = max(len(str(int(min_amount))), len(str(int(max_amount))))
+
+            amount = self.fake.pydecimal(
+                left_digits=max_len,
+                right_digits=2,
+                positive=True,
+                min_value=min_amount,
+                max_value=max_amount,
+            )
+
+            expense = Expense(
+                organization=organization,
+                amount=amount,
+                currency=Currency.USD,
+                category=category,
+                description=self.fake.sentence(nb_words=5),
+                expense_date=expense_date,
+            )
+            expenses.append(expense)
+
+        Expense.objects.bulk_create(expenses)
+        self.stdout.write(self.style.SUCCESS(f"  Создано расходов: {len(expenses)}"))
