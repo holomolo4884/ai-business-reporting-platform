@@ -110,7 +110,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 # G. Демо-данные
 
 - [x] G-01. Установить faker и factory-boy
-- [ ] G-02. Создать management-команду `seed_demo_data`
+- [x] G-02. Создать management-команду `seed_demo_data`
 - [ ] G-03. Создать demo user
 - [ ] G-04. Создать demo organization
 - [ ] G-05. Сгенерировать demo заказы
