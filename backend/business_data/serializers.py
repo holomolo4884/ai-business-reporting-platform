@@ -127,5 +127,5 @@ class ExpenseUpdateSerializer(serializers.ModelSerializer):
 
     def validate_amount(self, value):
         if value <= 0:
-            raise serializers.ValidationError("Amount must be positive.")
+            raise serializers.ValidationError("Сумма должна быть положительной.")
         return value
