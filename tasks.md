@@ -93,17 +93,17 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 
 # F. Бизнес-данные
 
-- [ ] F-01. Создать модель Order
-- [ ] F-02. Создать модель Expense
-- [ ] F-03. Привязать Order и Expense к Organization
-- [ ] F-04. Добавить статусы заказов: pending, paid, cancelled, refunded
-- [ ] F-05. Добавить индексы по organization_id и датам
-- [ ] F-06. Создать serializers для Order и Expense
-- [ ] F-07. Сделать CRUD API для Orders
-- [ ] F-08. Сделать CRUD API для Expenses
-- [ ] F-09. Добавить фильтрацию по датам, статусу, категории
-- [ ] F-10. Добавить пагинацию
-- [ ] F-11. Ограничить доступ к данным только своими организациями
+- [x] F-01. Создать модель Order
+- [x] F-02. Создать модель Expense
+- [x] F-03. Привязать Order и Expense к Organization
+- [x] F-04. Добавить статусы заказов: pending, paid, cancelled, refunded
+- [x] F-05. Добавить индексы по organization_id и датам
+- [x] F-06. Создать serializers для Order и Expense
+- [x] F-07. Сделать CRUD API для Orders
+- [x] F-08. Сделать CRUD API для Expenses
+- [x] F-09. Добавить фильтрацию по датам, статусу, категории
+- [x] F-10. Добавить пагинацию
+- [x] F-11. Ограничить доступ к данным только своими организациями
 
 ---
 
