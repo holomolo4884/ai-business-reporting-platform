@@ -76,10 +76,34 @@ class Command(BaseCommand):
         self.stdout.write(f"  Удалено расходов: {expenses_deleted}")
 
     def _create_demo_user(self):
-        """Создаёт демо-пользователя."""
-        # Реализация в G-03
-        self.stdout.write("  Создаём демо-пользователя...")
-        return None
+        """Создаёт demo пользователя."""
+        from accounts.models import User
+
+        email = "demo@example.com"
+        password = "demo123456"
+        username = "demo_user"
+
+        user, created = User.objects.get_or_create(
+            email=email,
+            defaults={
+                "username": username,
+                "first_name": "Demo",
+                "last_name": "User",
+                "is_active": True,
+            },
+        )
+
+        if created:
+            user.set_password(password)
+            user.save()
+            self.stdout.write(self.style.SUCCESS(f"  Создан пользователь: {email}"))
+        else:
+            self.stdout.write(f"  Пользователь уже существует: {email}")
+
+        self.stdout.write(f"  Email: {email}")
+        self.stdout.write(f"  Пароль: {password}")
+
+        return user
 
     def _create_demo_organization(self, user):
         """Создаёт демо-организацию."""
