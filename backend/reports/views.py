@@ -1,3 +1,4 @@
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
@@ -158,3 +159,62 @@ class ReportRegenerateView(APIView):
             },
             status=status.HTTP_202_ACCEPTED,
         )
+
+
+class ReportDownloadView(APIView):
+    """Endpoint для скачивания PDF файла отчёта."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, report_id: int, user) -> Report:
+        """Получает отчёт с проверкой прав доступа."""
+        report = get_object_or_404(
+            Report.objects.select_related("organization", "created_by"),
+            id=report_id,
+        )
+
+        # Проверяем, что пользователь является участником организации
+        if not OrganizationMember.objects.filter(
+            organization=report.organization,
+            user=user,
+        ).exists():
+            raise PermissionDenied("У вас нет доступа к этому отчёту.")
+
+        return report
+
+    def get(self, request: Request, report_id: int) -> Response | FileResponse:
+        report = self.get_object(report_id, request.user)
+
+        # Проверяем, что отчёт завершён
+        if not report.is_completed:
+            return Response(
+                {
+                    "detail": (
+                        "Отчёт ещё не завершён. " f"Текущий статус: {report.get_status_display()}"
+                    )
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Проверяем, что PDF файл существует
+        if not report.pdf_file:
+            return Response(
+                {"detail": "PDF файл отчёта ещё не создан."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Проверяем, что файл физически существует на диске
+        if not report.pdf_file.storage.exists(report.pdf_file.name):
+            return Response(
+                {"detail": "PDF файл не найден на сервере."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # Возвращаем файл как attachment (скачивание)
+        response = FileResponse(
+            report.pdf_file.open("rb"),
+            content_type="application/pdf",
+            as_attachment=True,
+            filename=f"report_{report.id}.pdf",
+        )
+        return response
