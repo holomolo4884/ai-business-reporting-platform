@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from organizations.models import Organization, OrganizationMember
+from reports.filters import ReportFilter
 from reports.models import Report
 from reports.serializers import (
     ReportGenerateSerializer,
@@ -60,6 +61,7 @@ class ReportListView(ListAPIView):
 
     permission_classes = [IsAuthenticated]
     serializer_class = ReportListSerializer
+    filterset_class = ReportFilter
 
     def get_queryset(self):
         # Пользователь видит только отчёты своих организаций
