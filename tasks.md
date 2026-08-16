@@ -152,14 +152,14 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 
 # J. Сервис сбора метрик
 
-- [ ] J-01. Создать MetricsService
-- [ ] J-02. Реализовать sales metrics: revenue, orders_count, average_order_value
-- [ ] J-03. Реализовать finance metrics: revenue, expenses_total, profit
-- [ ] J-04. Добавить top categories
-- [ ] J-05. Опционально добавить сравнение периодов
-- [ ] J-06. Обработать случай, когда данных нет
-- [ ] J-07. Проверить корректность работы с датами и таймзонами
-- [ ] J-08. Написать unit-тесты для MetricsService
+- [x] J-01. Создать MetricsService
+- [x] J-02. Реализовать sales metrics: revenue, orders_count, average_order_value
+- [x] J-03. Реализовать finance metrics: revenue, expenses_total, profit
+- [x] J-04. Добавить top categories
+- [x] J-05. Опционально добавить сравнение периодов
+- [x] J-06. Обработать случай, когда данных нет
+- [x] J-07. Проверить корректность работы с датами и таймзонами
+- [x] J-08. Написать unit-тесты для MetricsService
 
 ---
 
