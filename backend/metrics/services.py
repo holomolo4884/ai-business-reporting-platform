@@ -21,13 +21,13 @@ class MetricsService:
         self.period_start = period_start
         self.period_end = period_end
 
-    def collect_all_metrics(self) -> dict:
+    def collect_all_metrics(self, include_comparison: bool = False) -> dict:
         """Собирает все метрики для отчёта."""
         sales_metrics = self.collect_sales_metrics()
         finance_metrics = self.collect_finance_metrics()
         top_categories = self.collect_top_categories()
 
-        return {
+        result = {
             "period": {
                 "start": self.period_start.isoformat(),
                 "end": self.period_end.isoformat(),
@@ -36,6 +36,11 @@ class MetricsService:
             "finance": finance_metrics,
             "top_expense_categories": top_categories,
         }
+
+        if include_comparison:
+            result["period_comparison"] = self.collect_period_comparison()
+
+        return result
 
     def collect_sales_metrics(self) -> dict:
         """Собирает метрики продаж."""
@@ -143,3 +148,75 @@ class MetricsService:
             }
             for item in categories
         ]
+
+    def collect_period_comparison(self) -> dict:
+        """Сравнивает текущий период с предыдущим периодом той же длины."""
+        # Вычисляем длительность текущего периода
+        period_duration = self.period_end - self.period_start
+
+        # Предыдущий период: той же длины, сразу перед текущим
+        prev_period_end = self.period_start
+        prev_period_start = self.period_start - period_duration
+
+        # Создаём сервис для предыдущего периода
+        prev_service = MetricsService(
+            organization=self.organization,
+            period_start=prev_period_start,
+            period_end=prev_period_end,
+        )
+
+        # Собираем метрики для обоих периодов
+        current_sales = self.collect_sales_metrics()
+        current_finance = self.collect_finance_metrics()
+
+        prev_sales = prev_service.collect_sales_metrics()
+        prev_finance = prev_service.collect_finance_metrics()
+
+        # Вычисляем изменения в процентах
+        changes = {
+            "revenue_change": self._calculate_percentage_change(
+                current_finance["total_revenue"],
+                prev_finance["total_revenue"],
+            ),
+            "expenses_change": self._calculate_percentage_change(
+                current_finance["total_expenses"],
+                prev_finance["total_expenses"],
+            ),
+            "profit_change": self._calculate_percentage_change(
+                current_finance["net_profit"],
+                prev_finance["net_profit"],
+            ),
+            "orders_change": self._calculate_percentage_change(
+                current_sales["total_orders"],
+                prev_sales["total_orders"],
+            ),
+        }
+
+        return {
+            "current_period": {
+                "start": self.period_start.isoformat(),
+                "end": self.period_end.isoformat(),
+                "revenue": current_finance["total_revenue"],
+                "expenses": current_finance["total_expenses"],
+                "profit": current_finance["net_profit"],
+                "orders_count": current_sales["total_orders"],
+            },
+            "previous_period": {
+                "start": prev_period_start.isoformat(),
+                "end": prev_period_end.isoformat(),
+                "revenue": prev_finance["total_revenue"],
+                "expenses": prev_finance["total_expenses"],
+                "profit": prev_finance["net_profit"],
+                "orders_count": prev_sales["total_orders"],
+            },
+            "changes": changes,
+        }
+
+    @staticmethod
+    def _calculate_percentage_change(current: float, previous: float) -> float | None:
+        """Вычисляет процентное изменение."""
+        if previous == 0:
+            if current == 0:
+                return 0.0
+            return None  # Невозможно вычислить, если предыдущее значение 0
+        return round(((current - previous) / abs(previous)) * 100, 2)
