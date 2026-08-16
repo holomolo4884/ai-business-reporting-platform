@@ -2,6 +2,7 @@ from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -54,22 +55,20 @@ class ReportGenerateView(APIView):
         )
 
 
-class ReportListView(APIView):
-    """Endpoint для получения списка отчётов."""
+class ReportListView(ListAPIView):
+    """Endpoint для получения списка отчётов с пагинацией."""
 
     permission_classes = [IsAuthenticated]
+    serializer_class = ReportListSerializer
 
-    def get(self, request: Request) -> Response:
+    def get_queryset(self):
         # Пользователь видит только отчёты своих организаций
-        reports = (
-            Report.objects.filter(organization__members__user=request.user)
+        return (
+            Report.objects.filter(organization__members__user=self.request.user)
             .distinct()
             .select_related("organization", "created_by")
             .order_by("-created_at")
         )
-
-        serializer = ReportListSerializer(reports, many=True)
-        return Response(serializer.data)
 
 
 class ReportDetailView(APIView):
