@@ -1,6 +1,11 @@
 from django.urls import path
 
-from reports.views import ReportDetailView, ReportGenerateView, ReportListView
+from reports.views import (
+    ReportDetailView,
+    ReportGenerateView,
+    ReportListView,
+    ReportRegenerateView,
+)
 
 urlpatterns = [
     path(
@@ -17,5 +22,10 @@ urlpatterns = [
         "reports/<int:report_id>/",
         ReportDetailView.as_view(),
         name="report-detail",
+    ),
+    path(
+        "reports/<int:report_id>/regenerate/",
+        ReportRegenerateView.as_view(),
+        name="report-regenerate",
     ),
 ]
