@@ -8,6 +8,7 @@ from organizations.models import Organization
 from reports.models import Report
 from reports.serializers import (
     ReportGenerateSerializer,
+    ReportListSerializer,
     ReportSerializer,
 )
 
@@ -48,3 +49,21 @@ class ReportGenerateView(APIView):
             },
             status=status.HTTP_202_ACCEPTED,
         )
+
+
+class ReportListView(APIView):
+    """Endpoint для получения списка отчётов."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: Request) -> Response:
+        # Пользователь видит только отчёты своих организаций
+        reports = (
+            Report.objects.filter(organization__members__user=request.user)
+            .distinct()
+            .select_related("organization", "created_by")
+            .order_by("-created_at")
+        )
+
+        serializer = ReportListSerializer(reports, many=True)
+        return Response(serializer.data)
