@@ -71,7 +71,10 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS("=" * 60))
         self.stdout.write(f"  Пользователь: {user.email if user else 'N/A'}")
         self.stdout.write("  Пароль: demo123456")
-        self.stdout.write(f"  Организация: {organization.name if organization else 'N/A'}")
+        self.stdout.write(
+            f"  Организация: {organization.name if organization else 'N/A'} "
+            f"  (ID: {organization.id if organization else 'N/A'})"
+        )
         self.stdout.write("")
         self.stdout.write(
             f"  Заказов в организации: {organization.orders.count() if organization else 0}"
