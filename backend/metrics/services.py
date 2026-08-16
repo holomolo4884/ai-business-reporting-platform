@@ -17,6 +17,14 @@ class MetricsService:
         period_start: datetime,
         period_end: datetime,
     ):
+        from django.utils import timezone as tz
+
+        # Конвертируем naive datetime в aware, если необходимо
+        if tz.is_naive(period_start):
+            period_start = tz.make_aware(period_start)
+        if tz.is_naive(period_end):
+            period_end = tz.make_aware(period_end)
+
         self.organization = organization
         self.period_start = period_start
         self.period_end = period_end
