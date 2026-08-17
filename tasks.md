@@ -237,7 +237,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 - [ ] P-03. Отправлять уведомление после завершения генерации отчёта
 - [ ] P-04. Создать Celery-задачу `send_report_notification_task`
 - [ ] P-05. Добавить retry при недоступности notification-service
-- [ ] P-06. Сохранять NotificationLog
+- [x] P-06. Сохранять NotificationLog
 - [ ] P-07. Протестировать интеграцию с notification-service
 
 ---
