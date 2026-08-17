@@ -87,22 +87,28 @@ def _collect_metrics(report: Report) -> None:
 
 def _call_ai(report: Report) -> None:
     """
-    Вызывает AI для генерации текста отчёта.
+    Вызывает AI для генерации текста отчёта и рендерит финальный текст.
     """
     logger.info("Вызов AI для отчёта #%s", report.id)
 
     report.status = Report.Status.CALLING_AI
     report.save()
 
-    # Используем AIClient вместо заглушки
+    # Используем AIClient для вызова AI
     from ai.client import AIClient  # noqa: E402
 
     client = AIClient()
     ai_response = client.generate_report(report)
 
-    # Сохраняем ответ
+    # Сохраняем AI ответ
     report.ai_response = ai_response
-    report.generated_text = ai_response.get("generated_text", "")
+
+    # Рендерим финальный текст с помощью ReportRenderer
+    from reports.renderers import ReportRenderer  # noqa: E402
+
+    renderer = ReportRenderer(report)
+    report.generated_text = renderer.render_text()
+
     report.save()
 
-    logger.info("AI ответ получен для отчёта #%s", report.id)
+    logger.info("AI ответ получен и отрендерен для отчёта #%s", report.id)

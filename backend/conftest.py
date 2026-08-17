@@ -312,3 +312,14 @@ def metrics_service(metrics_organization, period):
         period_start=period["start"],
         period_end=period["end"],
     )
+
+
+@pytest.fixture(scope="session", autouse=True)
+def set_fake_ai_provider():
+    """В тестах всегда используем FakeAIProvider."""
+    from django.conf import settings
+
+    original_provider = getattr(settings, "AI_PROVIDER", "fake")
+    settings.AI_PROVIDER = "fake"
+    yield
+    settings.AI_PROVIDER = original_provider
