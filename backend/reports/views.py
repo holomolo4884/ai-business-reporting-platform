@@ -2,7 +2,7 @@ from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
 from rest_framework.response import Response
@@ -74,29 +74,20 @@ class ReportListView(ListAPIView):
         )
 
 
-class ReportDetailView(APIView):
+class ReportDetailView(RetrieveAPIView):
     """Endpoint для получения деталей отчёта."""
 
     permission_classes = [IsAuthenticated]
+    serializer_class = ReportSerializer
+    lookup_url_kwarg = "report_id"  # Параметр из URL: reports/<int:report_id>/
 
-    def get_object(self, report_id: int, user) -> Report:
-        """Получает отчёт с проверкой прав доступа."""
-        report = get_object_or_404(
-            Report.objects.select_related("organization", "created_by"),
-            id=report_id,
+    def get_queryset(self):
+        # Пользователь видит только отчёты своих организаций
+        return (
+            Report.objects.filter(organization__members__user=self.request.user)
+            .distinct()
+            .select_related("organization", "created_by")
         )
-
-        # Проверяем, что пользователь является участником организации
-        if not OrganizationMember.objects.filter(
-            organization=report.organization,
-            user=user,
-        ).exists():
-            raise PermissionDenied("У вас нет доступа к этому отчёту.")
-
-    def get(self, request: Request, report_id: int) -> Response:
-        report = self.get_object(report_id, request.user)
-        serializer = ReportSerializer(report)
-        return Response(serializer.data)
 
 
 class ReportRegenerateView(APIView):
