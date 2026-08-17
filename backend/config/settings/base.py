@@ -275,3 +275,40 @@ import os  # noqa: E402
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+
+# =====================================
+# AI Integration Settings
+# =====================================
+
+# Провайдер: fake, gigachat, openai
+AI_PROVIDER = os.environ.get("AI_PROVIDER", "fake")
+
+# Авторизационный ключ (credentials) для GigaChat API
+# или API ключ для OpenAI
+AI_API_KEY = os.environ.get("AI_API_KEY", "")
+
+# Модель AI
+# Для GigaChat: GigaChat, GigaChat-Pro, GigaChat-Max, GigaChat-2
+# Для OpenAI: gpt-4, gpt-3.5-turbo
+AI_MODEL = os.environ.get("AI_MODEL", "GigaChat")
+
+# Область применения для GigaChat:
+# GIGACHAT_API_PERS, GIGACHAT_API_B2B, GIGACHAT_API_CORP
+AI_SCOPE = os.environ.get("AI_SCOPE", "GIGACHAT_API_PERS")
+
+# Таймаут запроса к AI (секунды)
+AI_TIMEOUT_SECONDS = int(os.environ.get("AI_TIMEOUT_SECONDS", "60"))
+
+# Максимальное количество попыток при ошибке
+AI_MAX_RETRIES = int(os.environ.get("AI_MAX_RETRIES", "3"))
+
+# Проверка SSL сертификатов для GigaChat
+# False для разработки, True для продакшена
+AI_VERIFY_SSL = os.environ.get("AI_VERIFY_SSL", "False").lower() == "true"
+
+# Температура генерации (0.0 - 1.0)
+# 0 = детерминированный ответ, 1 = более креативный
+AI_TEMPERATURE = float(os.environ.get("AI_TEMPERATURE", "0.7"))
+
+# Максимальное количество токенов в ответе
+AI_MAX_TOKENS = int(os.environ.get("AI_MAX_TOKENS", "2000"))
