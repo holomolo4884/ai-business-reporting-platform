@@ -58,7 +58,10 @@ class BaseAIProvider(ABC):
     def validate_response(self, response_text: str) -> dict:
         """Валидирует ответ от AI через Pydantic."""
         # Логируем сырой ответ для отладки
-        logger.debug("Сырой ответ AI (первые 500 символов): %s", response_text[:500])
+        logger.debug(
+            "Сырой ответ AI (первые 500 символов): %s",
+            response_text[:500],
+        )
 
         # Извлекаем JSON из возможных markdown блоков
         json_text = self._extract_json(response_text)
@@ -66,15 +69,73 @@ class BaseAIProvider(ABC):
         try:
             data = json.loads(json_text)
         except json.JSONDecodeError as err:
-            raise AIResponseValidationError(
-                f"AI вернул не-JSON ответ: {err}. " f"Сырой ответ: {response_text[:300]}"
-            ) from err
+            # Попытка восстановить битый JSON
+            try:
+                # Иногда AI возвращает JSON с trailing запятыми
+                import re
+
+                cleaned = re.sub(r",\s*}", "}", json_text)
+                cleaned = re.sub(r",\s*]", "]", cleaned)
+                data = json.loads(cleaned)
+                logger.warning("JSON был восстановлен после очистки trailing запятых")
+            except json.JSONDecodeError:
+                raise AIResponseValidationError(
+                    f"AI вернул не-JSON ответ: {err}. " f"Сырой ответ: {response_text[:300]}"
+                ) from err
+
+        # Нормализация полей, если они не соответствуют ожидаемой структуре
+        data = self._normalize_ai_response(data)
 
         try:
             validated = AIReportResponse.model_validate(data)
             return validated.model_dump()
         except ValidationError as err:
+            logger.error("Ошибка валидации: %s", err)
+            logger.error("Данные: %s", data)
             raise AIResponseValidationError(f"Ответ AI не соответствует схеме: {err}") from err
+
+    @staticmethod
+    def _normalize_ai_response(data: dict) -> dict:
+        """
+        Нормализует структуру ответа от AI.
+
+        Разные AI провайдеры могут возвращать немного разную структуру.
+        Этот метод приводит данные к ожидаемому формату.
+        """
+        if not isinstance(data, dict):
+            return data
+
+        result = dict(data)
+
+        # Нормализация generated_text
+        gen_text = result.get("generated_text")
+        if isinstance(gen_text, dict):
+            result["generated_text"] = gen_text.get(
+                "text",
+                gen_text.get("content", ""),
+            )
+        elif isinstance(gen_text, list):
+            result["generated_text"] = "\n".join(str(item) for item in gen_text)
+
+        # Нормализация summary
+        summary = result.get("summary")
+        if isinstance(summary, dict):
+            result["summary"] = summary.get(
+                "text",
+                summary.get("content", ""),
+            )
+
+        # Гарантируем наличие обязательных полей
+        if "summary" not in result:
+            result["summary"] = ""
+        if "generated_text" not in result:
+            result["generated_text"] = ""
+        if "insights" not in result:
+            result["insights"] = []
+        if "recommendations" not in result:
+            result["recommendations"] = []
+
+        return result
 
 
 class FakeAIProvider(BaseAIProvider):
@@ -183,8 +244,8 @@ class GigaChatProvider(BaseAIProvider):
         report_type: str,
     ) -> dict:
         """Генерирует отчёт через GigaChat API."""
-        from gigachat import GigaChat
-        from gigachat.models import Chat, Messages, MessagesRole
+        from gigachat import GigaChat  # noqa: E402
+        from gigachat.models import Chat, Messages, MessagesRole  # noqa: E402
 
         logger.info(
             "GigaChatProvider: модель %s, scope %s",
@@ -239,7 +300,7 @@ def get_ai_provider() -> BaseAIProvider:
 
     Выбор провайдера определяется переменной окружения AI_PROVIDER.
     """
-    from django.conf import settings
+    from django.conf import settings  # noqa: E402
 
     provider_name = getattr(settings, "AI_PROVIDER", "fake")
 

@@ -168,3 +168,4 @@ cython_debug/
 
 # Media files
 backend/media/
+.pdf

@@ -42,7 +42,10 @@ def generate_report_task(self, report_id: int) -> None:
         # Шаг 2: Вызов AI
         _call_ai(report)
 
-        # Шаг 3: Завершение
+        # Шаг 3: Генерация PDF
+        _generate_pdf(report)
+
+        # Шаг 4: Завершение
         report.status = Report.Status.COMPLETED
         report.completed_at = timezone.now()
         report.save()
@@ -87,22 +90,55 @@ def _collect_metrics(report: Report) -> None:
 
 def _call_ai(report: Report) -> None:
     """
-    Вызывает AI для генерации текста отчёта.
+    Вызывает AI для генерации текста отчёта и рендерит финальный текст.
     """
     logger.info("Вызов AI для отчёта #%s", report.id)
 
     report.status = Report.Status.CALLING_AI
     report.save()
 
-    # Используем AIClient вместо заглушки
+    # Используем AIClient для вызова AI
     from ai.client import AIClient  # noqa: E402
 
     client = AIClient()
     ai_response = client.generate_report(report)
 
-    # Сохраняем ответ
+    # Сохраняем AI ответ
     report.ai_response = ai_response
-    report.generated_text = ai_response.get("generated_text", "")
+
+    # Рендерим финальный текст с помощью ReportRenderer
+    from reports.renderers import ReportRenderer  # noqa: E402
+
+    renderer = ReportRenderer(report)
+    report.generated_text = renderer.render_text()
+    report.generated_html = renderer.render_html()
+
     report.save()
 
-    logger.info("AI ответ получен для отчёта #%s", report.id)
+    logger.info("AI ответ получен и отрендерен для отчёта #%s", report.id)
+
+
+def _generate_pdf(report: Report) -> None:
+    """Генерирует PDF файл отчёта и сохраняет его."""
+    logger.info("Генерация PDF для отчёта #%s", report.id)
+
+    try:
+        from reports.renderers import ReportRenderer  # noqa: E402
+
+        renderer = ReportRenderer(report)
+        pdf_bytes = renderer.render_pdf()
+
+        # Сохраняем PDF в FileField
+        from django.core.files.base import ContentFile
+
+        filename = f"report_{report.id}.pdf"
+        report.pdf_file.save(filename, ContentFile(pdf_bytes), save=False)
+        report.save()
+
+        logger.info("PDF сохранён для отчёта #%s: %s", report.id, filename)
+
+    except Exception as exc:
+        logger.exception("Ошибка при генерации PDF для отчёта #%s", report.id)
+        # Не прерываем генерацию отчёта из-за ошибки PDF
+        report.error = f"Ошибка генерации PDF: {exc}"
+        report.save()
