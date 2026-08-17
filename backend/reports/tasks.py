@@ -42,7 +42,10 @@ def generate_report_task(self, report_id: int) -> None:
         # Шаг 2: Вызов AI
         _call_ai(report)
 
-        # Шаг 3: Завершение
+        # Шаг 3: Генерация PDF
+        _generate_pdf(report)
+
+        # Шаг 4: Завершение
         report.status = Report.Status.COMPLETED
         report.completed_at = timezone.now()
         report.save()
@@ -113,3 +116,29 @@ def _call_ai(report: Report) -> None:
     report.save()
 
     logger.info("AI ответ получен и отрендерен для отчёта #%s", report.id)
+
+
+def _generate_pdf(report: Report) -> None:
+    """Генерирует PDF файл отчёта и сохраняет его."""
+    logger.info("Генерация PDF для отчёта #%s", report.id)
+
+    try:
+        from reports.renderers import ReportRenderer  # noqa: E402
+
+        renderer = ReportRenderer(report)
+        pdf_bytes = renderer.render_pdf()
+
+        # Сохраняем PDF в FileField
+        from django.core.files.base import ContentFile
+
+        filename = f"report_{report.id}.pdf"
+        report.pdf_file.save(filename, ContentFile(pdf_bytes), save=False)
+        report.save()
+
+        logger.info("PDF сохранён для отчёта #%s: %s", report.id, filename)
+
+    except Exception as exc:
+        logger.exception("Ошибка при генерации PDF для отчёта #%s", report.id)
+        # Не прерываем генерацию отчёта из-за ошибки PDF
+        report.error = f"Ошибка генерации PDF: {exc}"
+        report.save()

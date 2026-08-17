@@ -70,6 +70,27 @@ class ReportRenderer:
 
         return html
 
+    def render_pdf(self) -> bytes:
+        """
+        Формирует PDF отчёт.
+
+        Сначала генерирует HTML, затем конвертирует в PDF.
+
+        Returns:
+            Байты PDF файла.
+        """
+        from reports.pdf_generator import PDFGenerator  # noqa: E402
+
+        # Генерируем HTML
+        html = self.render_html()
+
+        # Конвертируем в PDF
+        pdf_bytes = PDFGenerator.generate_from_html(html)
+
+        logger.info("PDF отчёт отрендерен для отчёта #%s", self.report.id)
+
+        return pdf_bytes
+
     def _build_template_context(self) -> dict[str, Any]:
         """Подготавливает контекст для HTML шаблона."""
         sales = self.metrics.get("sales", {})

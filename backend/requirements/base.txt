@@ -41,3 +41,6 @@ gunicorn>=22.0
 
 # AI
 gigachat>=0.2
+
+# Weasyprint
+weasyprint>=60.0
