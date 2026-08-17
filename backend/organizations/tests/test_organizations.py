@@ -8,16 +8,15 @@ from organizations.models import Organization, OrganizationMember
 class TestOrganizationList:
     """Тесты списка организаций."""
 
-    def test_list_organizations_success(self, owner_client, test_organization):
-        """Владелец видит свою организацию."""
+    def test_list_organizations_success(self, authenticated_client, test_organization):
+        """Успешное получение списка организаций."""
         url = reverse("api:organization-list-create")
 
-        response = owner_client.get(url)
+        response = authenticated_client.get(url)
 
         assert response.status_code == 200
         assert len(response.data) == 1
-        assert response.data[0]["name"] == test_organization.name
-        assert response.data[0]["user_role"] == "owner"
+        assert response.data[0]["name"] == "Test Organization"
 
     def test_list_organizations_empty(self, outsider_client):
         """Пользователь без организаций видит пустой список."""

@@ -171,7 +171,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 - [x] K-04. Настроить result backend
 - [x] K-05. Настроить autodiscover_tasks
 - [x] K-06. Проверить простую тестовую Celery-задачу
-- [ ] K-07. Настроить `CELERY_TASK_ALWAYS_EAGER` для тестов
+- [x] K-07. Настроить `CELERY_TASK_ALWAYS_EAGER` для тестов
 
 ---
 
