@@ -119,8 +119,8 @@ class NotificationLog(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
-        verbose_name = "Лог уведомления"
-        verbose_name_plural = "Логи уведомлений"
+        verbose_name = "Notification Log"
+        verbose_name_plural = "Notifications Logs"
         indexes = [
             models.Index(fields=["status", "created_at"]),
             models.Index(fields=["user", "created_at"]),

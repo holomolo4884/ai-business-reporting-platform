@@ -4,6 +4,10 @@ from typing import Any
 from celery import shared_task
 from django.utils import timezone
 
+from notifications.client import NotificationClient, NotificationError
+from notifications.models import NotificationLog
+from reports.models import Report
+
 logger = logging.getLogger(__name__)
 
 
@@ -21,19 +25,7 @@ def send_report_notification_task(
 ) -> None:
     """
     Отправляет уведомление о завершении генерации отчёта.
-
-    Args:
-        report_id: ID отчёта.
-        channel: Канал доставки (email/telegram).
     """
-    from notifications.client import (
-        NotificationChannel,
-        NotificationClient,
-        NotificationError,
-    )  # noqa: E402
-    from notifications.models import NotificationLog  # noqa: E402
-    from reports.models import Report  # noqa: E402
-
     logger.info(
         "Отправка уведомления об отчёте #%s (попытка %s)",
         report_id,
@@ -52,10 +44,11 @@ def send_report_notification_task(
         logger.warning("У отчёта #%s нет создателя, некому отправлять", report_id)
         return
 
-    # Определяем получателя и канал
+    # Определяем канал и получателя
+    from notifications.client import NotificationChannel
+
     if channel == "telegram":
-        # Для Telegram используем chat_id из metadata пользователя (если есть)
-        # Пока fallback на email
+        # TODO: брать chat_id из профиля пользователя
         recipient = user.email
         notification_channel = NotificationChannel.EMAIL
     else:
@@ -71,7 +64,6 @@ def send_report_notification_task(
 
     # Формируем сообщение
     subject = f"Отчёт готов: {report.organization.name}"
-
     period_start = report.period_start.strftime("%d.%m.%Y")
     period_end = report.period_end.strftime("%d.%m.%Y")
 
@@ -127,11 +119,8 @@ def send_report_notification_task(
                 report_id,
                 response.message,
             )
-            # Вызываем retry для повторной попытки
             if self.request.retries < self.max_retries:
-                raise self.retry(
-                    exc=NotificationError(response.message),
-                )
+                raise self.retry(exc=NotificationError(response.message))
 
     except NotificationError as exc:
         log.status = NotificationLog.Status.FAILED
@@ -166,13 +155,8 @@ def send_simple_notification(
     subject: str = "",
     metadata: dict[str, Any] | None = None,
 ) -> None:
-    """
-    Простая задача для отправки одиночного уведомления.
-
-    Используется для общих уведомлений вне контекста отчёта.
-    """
-    from notifications.client import NotificationChannel, NotificationClient  # noqa: E402
-    from notifications.models import NotificationLog  # noqa: E402
+    """Простая задача для отправки одиночного уведомления."""
+    from notifications.client import NotificationChannel  # noqa: E402
 
     log = NotificationLog.objects.create(
         channel=channel,

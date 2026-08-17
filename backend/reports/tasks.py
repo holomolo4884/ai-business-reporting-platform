@@ -52,6 +52,20 @@ def generate_report_task(self, report_id: int) -> None:
 
         logger.info("Отчёт #%s успешно сгенерирован", report_id)
 
+        # Шаг 5: Отправка уведомления
+        try:
+            from notifications.tasks import send_report_notification_task  # noqa: E402
+
+            send_report_notification_task.delay(report.id, channel="email")
+            logger.info("Задача уведомления для отчёта #%s поставлена в очередь", report_id)
+        except Exception as exc:
+            # Не прерываем выполнение из-за ошибки отправки уведомления
+            logger.exception(
+                "Не удалось поставить задачу уведомления для отчёта #%s: %s",
+                report_id,
+                exc,
+            )
+
     except Exception as exc:
         logger.exception("Ошибка при генерации отчёта #%s: %s", report_id, exc)
 
