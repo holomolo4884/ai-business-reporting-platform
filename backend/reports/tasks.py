@@ -88,25 +88,21 @@ def _collect_metrics(report: Report) -> None:
 def _call_ai(report: Report) -> None:
     """
     Вызывает AI для генерации текста отчёта.
-
-    Пока это заглушка — полноценная интеграция с AI будет в блоке M.
     """
     logger.info("Вызов AI для отчёта #%s", report.id)
 
     report.status = Report.Status.CALLING_AI
     report.save()
 
-    # Заглушка: симулируем ответ от AI
-    report.ai_response = {
-        "summary": "Это заглушка ответа от AI",
-        "insights": ["Инсайт 1", "Инсайт 2", "Инсайт 3"],
-    }
-    report.generated_text = (
-        f"Отчёт за период с {report.period_start.date()} по {report.period_end.date()}. "
-        f"Общая выручка: {report.metrics.get('finance', {}).get('total_revenue', 0)}. "
-        f"Общие расходы: {report.metrics.get('finance', {}).get('total_expenses', 0)}. "
-        f"Чистая прибыль: {report.metrics.get('finance', {}).get('net_profit', 0)}."
-    )
+    # Используем AIClient вместо заглушки
+    from ai.client import AIClient  # noqa: E402
+
+    client = AIClient()
+    ai_response = client.generate_report(report)
+
+    # Сохраняем ответ
+    report.ai_response = ai_response
+    report.generated_text = ai_response.get("generated_text", "")
     report.save()
 
     logger.info("AI ответ получен для отчёта #%s", report.id)

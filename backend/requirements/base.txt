@@ -38,3 +38,6 @@ tenacity>=9.0
 
 # Production server
 gunicorn>=22.0
+
+# AI
+gigachat>=0.2
