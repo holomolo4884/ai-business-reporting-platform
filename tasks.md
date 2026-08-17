@@ -165,13 +165,13 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 
 # K. Celery
 
-- [ ] K-01. Установить Celery и Redis
-- [ ] K-02. Создать `config/celery.py`
-- [ ] K-03. Настроить Redis как broker
-- [ ] K-04. Настроить result backend
-- [ ] K-05. Настроить autodiscover_tasks
-- [ ] K-06. Проверить простую тестовую Celery-задачу
-- [ ] K-07. Настроить `CELERY_TASK_ALWAYS_EAGER` для тестов
+- [x] K-01. Установить Celery и Redis
+- [x] K-02. Создать `config/celery.py`
+- [x] K-03. Настроить Redis как broker
+- [x] K-04. Настроить result backend
+- [x] K-05. Настроить autodiscover_tasks
+- [x] K-06. Проверить простую тестовую Celery-задачу
+- [x] K-07. Настроить `CELERY_TASK_ALWAYS_EAGER` для тестов
 
 ---
 

@@ -1,8 +1,27 @@
+from datetime import timedelta
+from decimal import Decimal
+
 import pytest
+from django.utils import timezone
 from rest_framework.test import APIClient
 
 from accounts.models import User
+from business_data.models import Currency, Expense, Order
+from metrics.services import MetricsService
 from organizations.models import Organization, OrganizationMember
+
+
+@pytest.fixture(scope="session")
+def django_db_setup():
+    """Настройка БД для тестов с переопределением настроек Celery."""
+    from django.conf import settings
+
+    # В тестах задачи выполняются синхронно (без Celery worker)
+    settings.CELERY_TASK_ALWAYS_EAGER = True
+    settings.CELERY_TASK_EAGER_PROPAGATES = True
+    # Используем memory:// как брокер для тестов (быстрее)
+    settings.CELERY_BROKER_URL = "memory://"
+    settings.CELERY_RESULT_BACKEND = "cache+memory://"
 
 
 @pytest.fixture
@@ -14,6 +33,7 @@ def api_client():
 @pytest.fixture
 def test_user(db):
     """Тестовый пользователь."""
+    User.objects.filter(email="test@example.com").delete()
     return User.objects.create_user(
         email="test@example.com",
         password="testpassword123",
@@ -54,6 +74,7 @@ def test_organization(db, test_user):
 @pytest.fixture
 def second_user(db):
     """Второй тестовый пользователь."""
+    User.objects.filter(email="second@example.com").delete()
     return User.objects.create_user(
         email="second@example.com",
         password="secondpassword123",
@@ -64,15 +85,16 @@ def second_user(db):
 @pytest.fixture
 def member_user(db, test_organization):
     """Пользователь с ролью member в организации."""
+    User.objects.filter(email="member@example.com").delete()
     user = User.objects.create_user(
         email="member@example.com",
         password="memberpassword123",
         username="memberuser",
     )
-    OrganizationMember.objects.create(
+    OrganizationMember.objects.get_or_create(
         organization=test_organization,
         user=user,
-        role=OrganizationMember.Role.MEMBER,
+        defaults={"role": OrganizationMember.Role.MEMBER},
     )
     return user
 
@@ -80,15 +102,16 @@ def member_user(db, test_organization):
 @pytest.fixture
 def admin_user(db, test_organization):
     """Пользователь с ролью admin в организации."""
+    User.objects.filter(email="admin@example.com").delete()
     user = User.objects.create_user(
         email="admin@example.com",
         password="adminpassword123",
         username="adminuser",
     )
-    OrganizationMember.objects.create(
+    OrganizationMember.objects.get_or_create(
         organization=test_organization,
         user=user,
-        role=OrganizationMember.Role.ADMIN,
+        defaults={"role": OrganizationMember.Role.ADMIN},
     )
     return user
 
@@ -145,18 +168,10 @@ def outsider_client(api_client, second_user):
     return api_client
 
 
-from datetime import timedelta  # noqa: E402
-from decimal import Decimal  # noqa: E402
-
-from django.utils import timezone  # noqa: E402
-
-from business_data.models import Currency, Expense, Order  # noqa: E402
-from metrics.services import MetricsService  # noqa: E402
-
-
 @pytest.fixture
 def metrics_user(db):
     """Пользователь для тестов метрик."""
+    User.objects.filter(email="metrics@example.com").delete()
     return User.objects.create_user(
         email="metrics@example.com",
         password="metricspassword123",
