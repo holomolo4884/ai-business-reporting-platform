@@ -312,3 +312,22 @@ AI_TEMPERATURE = float(os.environ.get("AI_TEMPERATURE", "0.7"))
 
 # Максимальное количество токенов в ответе
 AI_MAX_TOKENS = int(os.environ.get("AI_MAX_TOKENS", "2000"))
+
+# =====================================
+# Notification Service Integration
+# =====================================
+
+# URL notification-service
+NOTIFICATION_SERVICE_URL = os.environ.get(
+    "NOTIFICATION_SERVICE_URL",
+    "http://localhost:8001",
+)
+
+# Internal API key для вызовов из Django
+NOTIFICATION_INTERNAL_API_KEY = os.environ.get(
+    "NOTIFICATION_INTERNAL_API_KEY",
+    "change-me",
+)
+
+# Таймаут запросов к notification-service (секунды)
+NOTIFICATION_TIMEOUT_SECONDS = int(os.environ.get("NOTIFICATION_TIMEOUT_SECONDS", "10"))

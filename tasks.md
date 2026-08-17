@@ -232,13 +232,13 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 
 # P. Связка Django и notification-service
 
-- [ ] P-01. Создать NotificationClient в Django
-- [ ] P-02. Добавить internal API key/token для сервисов
-- [ ] P-03. Отправлять уведомление после завершения генерации отчёта
-- [ ] P-04. Создать Celery-задачу `send_report_notification_task`
-- [ ] P-05. Добавить retry при недоступности notification-service
-- [ ] P-06. Сохранять NotificationLog
-- [ ] P-07. Протестировать интеграцию с notification-service
+- [x] P-01. Создать NotificationClient в Django
+- [x] P-02. Добавить internal API key/token для сервисов
+- [x] P-03. Отправлять уведомление после завершения генерации отчёта
+- [x] P-04. Создать Celery-задачу `send_report_notification_task`
+- [x] P-05. Добавить retry при недоступности notification-service
+- [x] P-06. Сохранять NotificationLog
+- [x] P-07. Протестировать интеграцию с notification-service
 
 ---
 
