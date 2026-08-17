@@ -43,9 +43,10 @@ class ReportGenerateView(APIView):
             period_end=serializer.validated_data["period_end"],
         )
 
-        # TODO: Запустить фоновую задачу генерации (Celery)
-        # from reports.tasks import generate_report_task
-        # generate_report_task.delay(report.id)
+        # Запускаем фоновую задачу генерации
+        from reports.tasks import generate_report_task  # noqa: E402
+
+        generate_report_task.delay(report.id)
 
         return Response(
             {
@@ -149,9 +150,10 @@ class ReportRegenerateView(APIView):
 
         report.save()
 
-        # TODO: Запустить фоновую задачу генерации (Celery)
-        # from reports.tasks import generate_report_task
-        # generate_report_task.delay(report.id)
+        # Запускаем фоновую задачу генерации
+        from reports.tasks import generate_report_task  # noqa: E402
+
+        generate_report_task.delay(report.id)
 
         return Response(
             {

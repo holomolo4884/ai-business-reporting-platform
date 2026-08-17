@@ -177,7 +177,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 
 # L. Фоновая генерация отчёта
 
-- [ ] L-01. Создать Celery-задачу `generate_report_task`
+- [x] L-01. Создать Celery-задачу `generate_report_task`
 - [ ] L-02. Обновлять статусы Report во время генерации
 - [ ] L-03. Вызывать MetricsService внутри задачи
 - [ ] L-04. Сохранять собранные metrics в Report
