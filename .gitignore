@@ -169,3 +169,10 @@ cython_debug/
 # Media files
 backend/media/
 .pdf
+report_102.pdf
+
+# Notification service
+notification-service/.venv/
+notification-service/__pycache__/
+notification-service/.pytest_cache/
+notification-service/**/__pycache__/
