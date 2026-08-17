@@ -217,10 +217,10 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 
 # O. Notification-service
 
-- [ ] O-01. Создать папку `notification-service`
-- [ ] O-02. Создать FastAPI-приложение
-- [ ] O-03. Создать Pydantic-схемы запросов и ответов
-- [ ] O-04. Сделать health check: `GET /health/`
+- [x] O-01. Создать папку `notification-service`
+- [x] O-02. Создать FastAPI-приложение
+- [x] O-03. Создать Pydantic-схемы запросов и ответов
+- [x] O-04. Сделать health check: `GET /health/`
 - [ ] O-05. Сделать отправку уведомлений: `POST /api/v1/notifications/send/`
 - [ ] O-06. Добавить email channel, можно fake
 - [ ] O-07. Добавить telegram channel, можно fake
