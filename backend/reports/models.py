@@ -75,6 +75,11 @@ class Report(models.Model):
         verbose_name="Generated text",
         help_text="Сгенерированный текст отчёта",
     )
+    generated_html = models.TextField(
+        blank=True,
+        verbose_name="Generated HTML",
+        help_text="HTML версия отчёта",
+    )
     error = models.TextField(
         blank=True,
         verbose_name="Error",

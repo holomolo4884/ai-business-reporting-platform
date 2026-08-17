@@ -169,3 +169,58 @@ class TestReportRenderer:
         # Должен быть хотя бы заголовок и резюме
         assert "# Отчёт о продажах" in text
         assert len(text) > 0
+
+    def test_render_html_returns_valid_html(self, sales_report_for_render):
+        """HTML рендеринг возвращает валидный HTML."""
+        renderer = ReportRenderer(sales_report_for_render)
+        html = renderer.render_html()
+
+        assert html.startswith("<!DOCTYPE html>")
+        assert "<html" in html
+        assert "</html>" in html
+        assert "<head>" in html
+        assert "<body>" in html
+
+    def test_render_html_contains_organization(self, sales_report_for_render):
+        """HTML содержит название организации."""
+        renderer = ReportRenderer(sales_report_for_render)
+        html = renderer.render_html()
+
+        assert "Test Render Org" in html
+
+    def test_render_html_contains_metrics(self, sales_report_for_render):
+        """HTML содержит метрики."""
+        renderer = ReportRenderer(sales_report_for_render)
+        html = renderer.render_html()
+
+        assert "50,000.00" in html or "50000" in html  # Выручка
+        assert "30,000.00" in html or "30000" in html  # Расходы
+
+    def test_render_html_contains_insights(self, sales_report_for_render):
+        """HTML содержит инсайты."""
+        renderer = ReportRenderer(sales_report_for_render)
+        html = renderer.render_html()
+
+        assert "Высокая конверсия" in html
+        assert "insight" in html
+
+    def test_render_html_contains_recommendations(self, sales_report_for_render):
+        """HTML содержит рекомендации."""
+        renderer = ReportRenderer(sales_report_for_render)
+        html = renderer.render_html()
+
+        assert "Увеличить маркетинг" in html
+        assert "recommendation" in html
+
+    def test_render_html_with_empty_data(self, sales_report_for_render):
+        """HTML рендеринг работает с пустыми данными."""
+        sales_report_for_render.ai_response = {}
+        sales_report_for_render.metrics = {}
+        sales_report_for_render.save()
+
+        renderer = ReportRenderer(sales_report_for_render)
+        html = renderer.render_html()
+
+        # Должен быть валидный HTML
+        assert html.startswith("<!DOCTYPE html>")
+        assert "Test Render Org" in html

@@ -108,6 +108,7 @@ def _call_ai(report: Report) -> None:
 
     renderer = ReportRenderer(report)
     report.generated_text = renderer.render_text()
+    report.generated_html = renderer.render_html()
 
     report.save()
 

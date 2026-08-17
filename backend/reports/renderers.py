@@ -1,4 +1,7 @@
 import logging
+from typing import Any
+
+from django.template.loader import render_to_string
 
 from reports.models import Report
 
@@ -49,6 +52,82 @@ class ReportRenderer:
 
         # Объединяем секции, фильтруя пустые
         return "\n\n".join(section for section in sections if section)
+
+    def render_html(self) -> str:
+        """
+        Формирует HTML отчёт с использованием Django template.
+
+        Возвращает полный HTML документ, готовый для отображения
+        в браузере или конвертации в PDF.
+        """
+        # Подготавливаем контекст для шаблона
+        context = self._build_template_context()
+
+        # Рендерим шаблон
+        html = render_to_string("reports/report.html", context)
+
+        logger.info("HTML отчёт отрендерен для отчёта #%s", self.report.id)
+
+        return html
+
+    def _build_template_context(self) -> dict[str, Any]:
+        """Подготавливает контекст для HTML шаблона."""
+        sales = self.metrics.get("sales", {})
+        finance = self.metrics.get("finance", {})
+        top_categories = self.metrics.get("top_expense_categories", [])
+
+        # Определяем заголовок
+        report_type_display = {
+            Report.ReportType.SALES: "Отчёт о продажах",
+            Report.ReportType.FINANCE: "Финансовый отчёт",
+            Report.ReportType.CUSTOM: "Бизнес-отчёт",
+        }
+        title = report_type_display.get(self.report.report_type, "Бизнес-отчёт")
+
+        # Форматируем даты
+        period_start = self.report.period_start.strftime("%d.%m.%Y")
+        period_end = self.report.period_end.strftime("%d.%m.%Y")
+
+        if self.report.completed_at:
+            generated_at = self.report.completed_at.strftime("%d.%m.%Y %H:%M:%S")
+        else:
+            generated_at = "в процессе генерации"
+
+        # Форматируем категории расходов
+        formatted_categories = []
+        for cat in top_categories:
+            category_name = cat.get("category", "").replace("_", " ").title()
+            formatted_categories.append(
+                {
+                    "category_name": category_name,
+                    "total": cat.get("total", 0),
+                    "count": cat.get("count", 0),
+                }
+            )
+
+        return {
+            "title": title,
+            "organization_name": self.report.organization.name,
+            "period_start": period_start,
+            "period_end": period_end,
+            "period_days": self.report.period_days,
+            "report_id": self.report.id,
+            "generated_at": generated_at,
+            # Резюме
+            "summary": self.ai_response.get("summary", ""),
+            # Метрики
+            "revenue": finance.get("total_revenue", 0),
+            "expenses": finance.get("total_expenses", 0),
+            "profit": finance.get("net_profit", 0),
+            "orders_count": sales.get("total_orders", 0),
+            # Инсайты и рекомендации
+            "insights": self.ai_response.get("insights", []),
+            "recommendations": self.ai_response.get("recommendations", []),
+            # Детальная статистика
+            "sales_stats": sales if sales else None,
+            "finance_stats": finance if finance else None,
+            "top_categories": formatted_categories,
+        }
 
     def _render_header(self) -> str:
         """Заголовок отчёта с периодом."""
