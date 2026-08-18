@@ -68,7 +68,7 @@ class ReportScheduleAdmin(admin.ModelAdmin):
 
     list_display = [
         "id",
-        "organizations",
+        "organization",
         "report_type",
         "frequency",
         "is_active",

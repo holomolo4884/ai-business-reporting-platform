@@ -10,10 +10,11 @@ from rest_framework.views import APIView
 
 from organizations.models import Organization, OrganizationMember
 from reports.filters import ReportFilter
-from reports.models import Report
+from reports.models import Report, ReportSchedule
 from reports.serializers import (
     ReportGenerateSerializer,
     ReportListSerializer,
+    ReportScheduleSerializer,
     ReportSerializer,
 )
 
@@ -212,3 +213,127 @@ class ReportDownloadView(APIView):
             filename=f"report_{report.id}.pdf",
         )
         return response
+
+
+class ReportScheduleListCreateView(APIView):
+    """
+    Список расписаний организации и создание нового.
+
+    GET: Получить список расписаний (все участники организации)
+    POST: Создать расписание (только owner/admin)
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get_organization_or_404(self, organization_id: int, user) -> Organization:
+        """Получает организацию или 404."""
+        org = get_object_or_404(Organization, id=organization_id)
+        if not OrganizationMember.objects.filter(organization=org, user=user).exists():
+            raise PermissionDenied("У вас нет доступа к этой организации.")
+        return org
+
+    def get(self, request: Request, organization_id: int) -> Response:
+        """Список расписаний организации."""
+        org = self.get_organization_or_404(organization_id, request.user)
+
+        schedules = ReportSchedule.objects.filter(organization=org).select_related(
+            "organization", "created_by"
+        )
+
+        serializer = ReportScheduleSerializer(schedules, many=True)
+        return Response(serializer.data)
+
+    def post(self, request: Request, organization_id: int) -> Response:
+        """Создать расписание."""
+        org = self.get_organization_or_404(organization_id, request.user)
+
+        # Проверяем роль (только owner/admin)
+        membership = OrganizationMember.objects.get(organization=org, user=request.user)
+        if membership.role not in [
+            OrganizationMember.Role.OWNER,
+            OrganizationMember.Role.ADMIN,
+        ]:
+            raise PermissionDenied("Только владельцы и администраторы могут создавать расписания.")
+
+        serializer = ReportScheduleSerializer(
+            data=request.data,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+
+        # Привязываем организацию
+        serializer.save(organization=org)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ReportScheduleDetailView(APIView):
+    """
+    Детали расписания.
+
+    GET: Получить расписание
+    PATCH: Обновить (только owner/admin)
+    DELETE: Удалить (только owner/admin)
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get_object_or_404_with_permission(
+        self, schedule_id: int, user, require_admin: bool = False
+    ) -> ReportSchedule:
+        """Получает расписание с проверкой доступа."""
+        schedule = get_object_or_404(
+            ReportSchedule.objects.select_related("organization", "created_by"),
+            id=schedule_id,
+        )
+
+        # Проверяем членство в организации
+        try:
+            membership = OrganizationMember.objects.get(
+                organization=schedule.organization,
+                user=user,
+            )
+        except OrganizationMember.DoesNotExist as err:
+            raise PermissionDenied("У вас нет доступа к этому расписанию.") from err
+
+        # Для изменений нужна роль owner/admin
+        if require_admin and membership.role not in [
+            OrganizationMember.Role.OWNER,
+            OrganizationMember.Role.ADMIN,
+        ]:
+            raise PermissionDenied(
+                "Только владельцы и администраторы могут изменять расписания."
+            ) from None
+
+        return schedule
+
+    def get(self, request: Request, schedule_id: int) -> Response:
+        """Получить расписание."""
+        schedule = self.get_object_or_404_with_permission(schedule_id, request.user)
+        serializer = ReportScheduleSerializer(schedule)
+        return Response(serializer.data)
+
+    def patch(self, request: Request, schedule_id: int) -> Response:
+        """Обновить расписание."""
+        schedule = self.get_object_or_404_with_permission(
+            schedule_id, request.user, require_admin=True
+        )
+
+        serializer = ReportScheduleSerializer(
+            schedule,
+            data=request.data,
+            partial=True,
+            context={"request": request},
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(serializer.data)
+
+    def delete(self, request: Request, schedule_id: int) -> Response:
+        """Удалить расписание."""
+        schedule = self.get_object_or_404_with_permission(
+            schedule_id, request.user, require_admin=True
+        )
+        schedule.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

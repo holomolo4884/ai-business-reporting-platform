@@ -246,7 +246,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 
 - [x] Q-01. Создать модель ReportSchedule
 - [x] Q-02. Добавить frequency: daily, weekly, monthly
-- [ ] Q-03. Сделать CRUD API для ReportSchedule
+- [x] Q-03. Сделать CRUD API для ReportSchedule
 - [ ] Q-04. Подключить Celery Beat
 - [ ] Q-05. Создать периодическую задачу проверки расписаний
 - [ ] Q-06. Избежать дублирования отчётов за один период
