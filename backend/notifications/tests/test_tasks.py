@@ -17,7 +17,7 @@ from reports.models import Report
 @pytest.fixture
 def completed_report_for_notify(db, test_user):
     """Завершённый отчёт для тестов уведомлений."""
-    from organizations.models import Organization, OrganizationMember
+    from organizations.models import Organization, OrganizationMember  # noqa: E402
 
     org, _ = Organization.objects.get_or_create(name="Notify Test Org")
     OrganizationMember.objects.get_or_create(
