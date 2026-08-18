@@ -1,10 +1,11 @@
 import logging
+from datetime import UTC, datetime, timedelta
 
 from celery import shared_task
 from django.utils import timezone
 
 from metrics.services import MetricsService
-from reports.models import Report
+from reports.models import Report, ReportSchedule
 
 logger = logging.getLogger(__name__)
 
@@ -156,3 +157,207 @@ def _generate_pdf(report: Report) -> None:
         # Не прерываем генерацию отчёта из-за ошибки PDF
         report.error = f"Ошибка генерации PDF: {exc}"
         report.save()
+
+
+@shared_task(
+    bind=True,
+    max_retries=2,
+    default_retry_delay=60,
+)
+def check_and_run_scheduled_reports_task(self) -> dict:
+    """
+    Периодическая задача, проверяющая расписания и запускающая генерацию отчётов.
+
+    Запускается Celery Beat каждую минуту.
+
+    Шаги:
+    1. Находит все активные расписания, у которых next_run_at <= now
+    2. Для каждого расписания:
+       - Рассчитывает период отчёта (предыдущий день/неделя/месяц)
+       - Проверяет, нет ли уже отчёта за этот период (защита от дублирования)
+       - Создаёт новый отчёт
+       - Запускает generate_report_task
+       - Обновляет last_run_at и next_run_at
+
+    Returns:
+        dict: Статистика выполнения (processed, created, skipped).
+    """
+
+    logger.info("Запуск проверки расписаний отчётов")
+
+    now = timezone.now()
+    stats = {"processed": 0, "created": 0, "skipped": 0, "errors": 0}
+
+    # Находим все активные расписания, у которых пришло время запускаться
+    schedules = ReportSchedule.objects.filter(
+        is_active=True,
+        next_run_at__lte=now,
+    ).select_related("organization", "created_by")
+
+    if not schedules.exists():
+        logger.info("Нет расписаний, требующих запуска")
+        return stats
+
+    logger.info("Найдено %d расписаний для обработки", schedules.count())
+
+    for schedule in schedules:
+        try:
+            stats["processed"] += 1
+
+            # Рассчитываем период для отчёта
+            period_start, period_end = _calculate_report_period(schedule, now)
+
+            # Проверяем дублирование
+            existing_report = Report.objects.filter(
+                organization=schedule.organization,
+                report_type=schedule.report_type,
+                period_start=period_start,
+                period_end=period_end,
+            ).exists()
+
+            if existing_report:
+                logger.info(
+                    "Отчёт за период %s - %s уже существует, пропускаем расписание #%s",
+                    period_start,
+                    period_end,
+                    schedule.id,
+                )
+                stats["skipped"] += 1
+                # Всё равно обновляем next_run_at, чтобы не пытаться снова
+                _advance_schedule(schedule)
+                continue
+
+            # Создаём отчёт
+            report = Report.objects.create(
+                organization=schedule.organization,
+                created_by=schedule.created_by,
+                report_type=schedule.report_type,
+                status=Report.Status.PENDING,
+                period_start=period_start,
+                period_end=period_end,
+            )
+
+            # Запускаем генерацию
+            generate_report_task.delay(report.id)
+
+            logger.info(
+                "Запущена генерация отчёта #%s по расписанию #%s (период %s - %s)",
+                report.id,
+                schedule.id,
+                period_start,
+                period_end,
+            )
+
+            stats["created"] += 1
+
+            # Обновляем расписание
+            _advance_schedule(schedule)
+
+        except Exception as exc:
+            logger.exception(
+                "Ошибка при обработке расписания #%s: %s",
+                schedule.id,
+                exc,
+            )
+            stats["errors"] += 1
+
+    logger.info(
+        "Проверка расписаний завершена: processed=%d, created=%d, skipped=%d, errors=%d",
+        stats["processed"],
+        stats["created"],
+        stats["skipped"],
+        stats["errors"],
+    )
+
+    return stats
+
+
+def _calculate_report_period(
+    schedule: ReportSchedule,
+    now: datetime,
+) -> tuple[datetime, datetime]:
+    """
+    Рассчитывает период отчёта на основе частоты расписания.
+
+    Отчёт всегда охватывает ПРЕДЫДУЩИЙ период:
+    - DAILY: предыдущий день
+    - WEEKLY: предыдущая неделя (Пн-Вс)
+    - MONTHLY: предыдущий месяц
+
+    Returns:
+        tuple: (period_start, period_end) с timezone UTC.
+    """
+    if schedule.frequency == ReportSchedule.Frequency.DAILY:
+        # Предыдущий полный день
+        yesterday = now.date() - timedelta(days=1)
+        period_start = datetime.combine(
+            yesterday,
+            datetime.min.time(),
+            tzinfo=UTC,
+        )
+        period_end = datetime.combine(
+            yesterday,
+            datetime.max.time(),
+            tzinfo=UTC,
+        )
+        return period_start, period_end
+
+    if schedule.frequency == ReportSchedule.Frequency.WEEKLY:
+        # Предыдущая полная неделя (Пн-Вс)
+        # Находим начало текущей недели (понедельник)
+        current_week_start = now.date() - timedelta(days=now.weekday())
+        # Предыдущая неделя
+        prev_week_start = current_week_start - timedelta(weeks=1)
+        prev_week_end = prev_week_start + timedelta(days=6)
+
+        period_start = datetime.combine(
+            prev_week_start,
+            datetime.min.time(),
+            tzinfo=UTC,
+        )
+        period_end = datetime.combine(
+            prev_week_end,
+            datetime.max.time(),
+            tzinfo=UTC,
+        )
+        return period_start, period_end
+
+    if schedule.frequency == ReportSchedule.Frequency.MONTHLY:
+        # Предыдущий полный месяц
+
+        # Первый день текущего месяца
+        current_month_start = now.date().replace(day=1)
+        # Последний день предыдущего месяца
+        prev_month_end = current_month_start - timedelta(days=1)
+        # Первый день предыдущего месяца
+        prev_month_start = prev_month_end.replace(day=1)
+
+        period_start = datetime.combine(
+            prev_month_start,
+            datetime.min.time(),
+            tzinfo=UTC,
+        )
+        period_end = datetime.combine(
+            prev_month_end,
+            datetime.max.time(),
+            tzinfo=UTC,
+        )
+        return period_start, period_end
+
+    # Fallback — предыдущий день
+    yesterday = now.date() - timedelta(days=1)
+    return (
+        datetime.combine(yesterday, datetime.min.time(), tzinfo=UTC),
+        datetime.combine(yesterday, datetime.max.time(), tzinfo=UTC),
+    )
+
+
+def _advance_schedule(schedule: ReportSchedule) -> None:
+    """
+    Обновляет расписание после выполнения:
+    - last_run_at = сейчас
+    - next_run_at = следующее время запуска
+    """
+    schedule.last_run_at = timezone.now()
+    schedule.next_run_at = schedule.calculate_next_run()
+    schedule.save(update_fields=["last_run_at", "next_run_at"])

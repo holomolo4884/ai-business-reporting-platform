@@ -6,6 +6,8 @@ from reports.views import (
     ReportGenerateView,
     ReportListView,
     ReportRegenerateView,
+    ReportScheduleDetailView,
+    ReportScheduleListCreateView,
 )
 
 urlpatterns = [
@@ -33,5 +35,15 @@ urlpatterns = [
         "reports/<int:report_id>/download/",
         ReportDownloadView.as_view(),
         name="report-download",
+    ),
+    path(
+        "organizations/<int:organization_id>/schedules/",
+        ReportScheduleListCreateView.as_view(),
+        name="schedule-list-create",
+    ),
+    path(
+        "schedules/<int:schedule_id>/",
+        ReportScheduleDetailView.as_view(),
+        name="schedule-detail",
     ),
 ]

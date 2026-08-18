@@ -45,7 +45,7 @@ def send_report_notification_task(
         return
 
     # Определяем канал и получателя
-    from notifications.client import NotificationChannel
+    from notifications.client import NotificationChannel  # noqa: E402
 
     if channel == "telegram":
         # TODO: брать chat_id из профиля пользователя
