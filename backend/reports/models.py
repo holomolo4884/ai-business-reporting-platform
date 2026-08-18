@@ -368,7 +368,12 @@ class ReportSchedule(models.Model):
         return now + timedelta(days=1)
 
     def save(self, *args, **kwargs):
-        """При сохранении пересчитываем next_run_at."""
-        if not self.next_run_at or self.pk is None:
+        """
+        При сохранении пересчитывает next_run_at, только если он не задан.
+
+        Это позволяет явно устанавливать next_run_at в тестах и при
+        программном создании расписаний.
+        """
+        if not self.next_run_at:
             self.next_run_at = self.calculate_next_run()
         super().save(*args, **kwargs)
