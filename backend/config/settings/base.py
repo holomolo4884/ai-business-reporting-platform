@@ -191,16 +191,78 @@ REST_FRAMEWORK = {
 }
 
 # =====================================
-# drf-spectacular
+# DRF Spectacular (OpenAPI / Swagger)
 # =====================================
 
 SPECTACULAR_SETTINGS = {
     "TITLE": "AI Business Reporting Platform API",
-    "DESCRIPTION": "API for AI-powered business reporting platform",
+    "DESCRIPTION": (
+        "API для платформы автоматической генерации бизнес-отчётов с использованием AI.\n\n"
+        "## Возможности\n"
+        "- 📊 Автоматическая генерация отчётов через AI (GigaChat/OpenAI)\n"
+        "- 📧 Email, Telegram и Webhook уведомления\n"
+        "- ⏰ Автоматическая генерация по расписанию (daily/weekly/monthly)\n"
+        "- 📥 Экспорт отчётов в PDF\n"
+        "- 🔐 JWT аутентификация\n\n"
+        "## Авторизация\n"
+        "Используйте endpoint `/api/v1/auth/token/` для получения access и refresh токенов. "
+        "Нажмите кнопку **Authorize** и введите: `Bearer <your_access_token>`"
+    ),
     "VERSION": "1.0.0",
-    "SERVE_INCLUDE_SCHEMA": False,
+    "SERVE_INCLUDE_SCHEMA": False,  # Не показывать схему в списке endpoint'ов
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.AllowAny"],  # Схема публичная
+    # Настройки UI
+    "SWAGGER_UI_SETTINGS": {
+        "deepLinking": True,
+        "persistAuthorization": True,  # Сохранять авторизацию между перезагрузками
+        "displayOperationId": False,
+        "filter": True,  # Включить фильтр по endpoint'ам
+    },
+    # Настройки аутентификации в Swagger UI
     "COMPONENT_SPLIT_REQUEST": True,
-    "SCHEMA_PATH_PREFIX": r"/api/v[0-9]+",
+    # JWT Bearer авторизация
+    "SECURITY": [
+        {
+            "Bearer": [],
+        }
+    ],
+    "AUTHENTICATION_WHITELIST": [
+        "rest_framework.authentication.SessionAuthentication",
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    # Схемы
+    "SCHEMA_PATH_PREFIX": r"/api/v[0-9]+",  # Убирает префикс /api/v1/ из путей
+    # Теги для группировки endpoint'ов
+    "TAGS": [
+        {"name": "Auth", "description": "Аутентификация и токены"},
+        {"name": "Users", "description": "Пользователи"},
+        {"name": "Organizations", "description": "Организации и участники"},
+        {"name": "Orders", "description": "Заказы (продажи)"},
+        {"name": "Expenses", "description": "Расходы"},
+        {"name": "Reports", "description": "Отчёты и их генерация"},
+        {"name": "Schedules", "description": "Расписания генерации отчётов"},
+        {"name": "Notifications", "description": "Уведомления"},
+        {"name": "Health", "description": "Health check"},
+    ],
+    # OpenAPI 3.0.3
+    "OAS_VERSION": "3.0.3",
+    # Отключаем warnings о неизвестных схемах
+    "DISABLE_ERRORS_AND_WARNINGS": True,
+    # Enum'ы
+    "ENUM_NAME_OVERRIDES": {
+        "Status90dEnum": "reports.models.Report.Status",
+        "ScheduleFrequencyEnum": "reports.models.ReportSchedule.Frequency",
+        "MemberRoleEnum": "organizations.models.OrganizationMember.Role",
+        "NotificationChannelEnum": "notifications.models.NotificationLog.Channel",
+        "NotificationStatusEnum": "notifications.models.NotificationLog.Status",
+        "ReportTypeEnum": "reports.models.Report.ReportType",
+    },
+}
+
+# Используем SpectacularAutoSchema для автоматической генерации схем
+REST_FRAMEWORK = {
+    **REST_FRAMEWORK,
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
 }
 
 # =====================================

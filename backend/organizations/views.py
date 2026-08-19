@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.request import Request
@@ -25,6 +26,11 @@ class OrganizationListCreateView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        tags=["Organizations"],
+        summary="Список организаций пользователя",
+        responses={200: OrganizationSerializer(many=True)},
+    )
     def get(self, request: Request) -> Response:
         # Получаем только организации, в которых пользователь является участником
         organizations = Organization.objects.filter(members__user=request.user).distinct()
@@ -36,6 +42,12 @@ class OrganizationListCreateView(APIView):
         )
         return Response(serializer.data)
 
+    @extend_schema(
+        tags=["Organizations"],
+        summary="Создать организацию",
+        request=OrganizationSerializer,
+        responses={201: OrganizationSerializer},
+    )
     def post(self, request: Request) -> Response:
         serializer = OrganizationCreateSerializer(
             data=request.data,
@@ -61,6 +73,11 @@ class OrganizationDetailView(APIView):
     def get_object(self, organization_id: int) -> Organization:
         return Organization.objects.get(id=organization_id)
 
+    @extend_schema(
+        tags=["Organizations"],
+        summary="Получить организацию",
+        responses={200: OrganizationSerializer},
+    )
     def get(self, request: Request, organization_id: int) -> Response:
         organization = self.get_object(organization_id)
         self.check_object_permissions(request, organization)
@@ -71,6 +88,12 @@ class OrganizationDetailView(APIView):
         )
         return Response(serializer.data)
 
+    @extend_schema(
+        tags=["Organizations"],
+        summary="Обновить организацию",
+        request=OrganizationSerializer,
+        responses={200: OrganizationSerializer},
+    )
     def patch(self, request: Request, organization_id: int) -> Response:
         organization = self.get_object(organization_id)
         self.check_object_permissions(request, organization)
@@ -97,6 +120,11 @@ class OrganizationDetailView(APIView):
             ).data
         )
 
+    @extend_schema(
+        tags=["Organizations"],
+        summary="Удалить организацию",
+        responses={204: None},
+    )
     def delete(self, request: Request, organization_id: int) -> Response:
         organization = self.get_object(organization_id)
         self.check_object_permissions(request, organization)
@@ -120,6 +148,11 @@ class OrganizationMemberListView(APIView):
     def get_organization(self, organization_id: int) -> Organization:
         return Organization.objects.get(id=organization_id)
 
+    @extend_schema(
+        tags=["Organizations"],
+        summary="Список участников организации",
+        responses={200: OrganizationMemberSerializer(many=True)},
+    )
     def get(self, request: Request, organization_id: int) -> Response:
         organization = self.get_organization(organization_id)
         self.check_object_permissions(request, organization)
@@ -128,6 +161,12 @@ class OrganizationMemberListView(APIView):
         serializer = OrganizationMemberSerializer(members, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        tags=["Organizations"],
+        summary="Добавить участника",
+        request=OrganizationMemberSerializer,
+        responses={201: OrganizationMemberSerializer},
+    )
     def post(self, request: Request, organization_id: int) -> Response:
         organization = self.get_organization(organization_id)
         self.check_object_permissions(request, organization)
@@ -176,6 +215,12 @@ class OrganizationMemberDetailView(APIView):
             organization_id=organization_id,
         )
 
+    @extend_schema(
+        tags=["Organizations"],
+        summary="Обновить роль участника",
+        request=OrganizationMemberSerializer,
+        responses={200: OrganizationMemberSerializer},
+    )
     def patch(self, request: Request, organization_id: int, member_id: int) -> Response:
         organization = self.get_organization(organization_id)
         self.check_object_permissions(request, organization)
@@ -210,6 +255,11 @@ class OrganizationMemberDetailView(APIView):
 
         return Response(OrganizationMemberSerializer(member).data)
 
+    @extend_schema(
+        tags=["Organizations"],
+        summary="Удалить участника",
+        responses={204: None},
+    )
     def delete(self, request: Request, organization_id: int, member_id: int) -> Response:
         organization = self.get_organization(organization_id)
         self.check_object_permissions(request, organization)

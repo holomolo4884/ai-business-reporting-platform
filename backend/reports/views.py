@@ -1,5 +1,6 @@
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import ListAPIView, RetrieveAPIView
@@ -23,7 +24,14 @@ class ReportGenerateView(APIView):
     """Endpoint для генерации отчёта."""
 
     permission_classes = [IsAuthenticated]
+    serializer_class = ReportGenerateSerializer
 
+    @extend_schema(
+        tags=["Reports"],
+        summary="Создать отчёт и поставить в очередь",
+        request=ReportGenerateSerializer,
+        responses={202: ReportSerializer},
+    )
     def post(self, request: Request) -> Response:
         serializer = ReportGenerateSerializer(
             data=request.data,
@@ -66,6 +74,8 @@ class ReportListView(ListAPIView):
     filterset_class = ReportFilter
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Report.objects.none()
         # Пользователь видит только отчёты своих организаций
         return (
             Report.objects.filter(organization__members__user=self.request.user)
@@ -95,6 +105,7 @@ class ReportRegenerateView(APIView):
     """Endpoint для повторной генерации отчёта."""
 
     permission_classes = [IsAuthenticated]
+    serializer_class = ReportSerializer
 
     def get_object(self, report_id: int, user) -> Report:
         """Получает отчёт с проверкой прав доступа."""
@@ -112,6 +123,12 @@ class ReportRegenerateView(APIView):
 
         return report
 
+    @extend_schema(
+        tags=["Reports"],
+        summary="Перегенерировать отчёт",
+        description="Запускает повторную генерацию существующего отчёта.",
+        responses={202: ReportSerializer},
+    )
     def post(self, request: Request, report_id: int) -> Response:
         report = self.get_object(report_id, request.user)
 
@@ -160,6 +177,8 @@ class ReportDownloadView(APIView):
     """Endpoint для скачивания PDF файла отчёта."""
 
     permission_classes = [IsAuthenticated]
+    # Для download не нужен serializer_class, но добавим для схемы
+    serializer_class = ReportSerializer
 
     def get_object(self, report_id: int, user) -> Report:
         """Получает отчёт с проверкой прав доступа."""
@@ -177,6 +196,22 @@ class ReportDownloadView(APIView):
 
         return report
 
+    @extend_schema(
+        tags=["Reports"],
+        summary="Скачать PDF отчёта",
+        description="Возвращает PDF файл отчёта, если он сгенерирован.",
+        responses={
+            200: OpenApiResponse(
+                description="PDF файл отчёта",
+                response={
+                    "type": "string",
+                    "format": "binary",
+                },
+            ),
+            404: OpenApiResponse(description="Отчёт не найден"),
+            400: OpenApiResponse(description="Отчёт ещё не готов"),
+        },
+    )
     def get(self, request: Request, report_id: int) -> Response | FileResponse:
         report = self.get_object(report_id, request.user)
 
@@ -224,6 +259,7 @@ class ReportScheduleListCreateView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = ReportScheduleSerializer
 
     def get_organization_or_404(self, organization_id: int, user) -> Organization:
         """Получает организацию или 404."""
@@ -232,6 +268,12 @@ class ReportScheduleListCreateView(APIView):
             raise PermissionDenied("У вас нет доступа к этой организации.")
         return org
 
+    @extend_schema(
+        tags=["Schedules"],
+        summary="Список расписаний организации",
+        description="Возвращает все расписания указанной организации.",
+        responses={200: ReportScheduleSerializer(many=True)},
+    )
     def get(self, request: Request, organization_id: int) -> Response:
         """Список расписаний организации."""
         org = self.get_organization_or_404(organization_id, request.user)
@@ -243,6 +285,13 @@ class ReportScheduleListCreateView(APIView):
         serializer = ReportScheduleSerializer(schedules, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        tags=["Schedules"],
+        summary="Создать расписание",
+        description="Создаёт новое расписание для организации.",
+        request=ReportScheduleSerializer,
+        responses={201: ReportScheduleSerializer},
+    )
     def post(self, request: Request, organization_id: int) -> Response:
         """Создать расписание."""
         org = self.get_organization_or_404(organization_id, request.user)
@@ -277,6 +326,7 @@ class ReportScheduleDetailView(APIView):
     """
 
     permission_classes = [IsAuthenticated]
+    serializer_class = ReportScheduleSerializer
 
     def get_object_or_404_with_permission(
         self, schedule_id: int, user, require_admin: bool = False
@@ -307,12 +357,23 @@ class ReportScheduleDetailView(APIView):
 
         return schedule
 
+    @extend_schema(
+        tags=["Schedules"],
+        summary="Получить расписание",
+        responses={200: ReportScheduleSerializer},
+    )
     def get(self, request: Request, schedule_id: int) -> Response:
         """Получить расписание."""
         schedule = self.get_object_or_404_with_permission(schedule_id, request.user)
         serializer = ReportScheduleSerializer(schedule)
         return Response(serializer.data)
 
+    @extend_schema(
+        tags=["Schedules"],
+        summary="Обновить расписание",
+        request=ReportScheduleSerializer,
+        responses={200: ReportScheduleSerializer},
+    )
     def patch(self, request: Request, schedule_id: int) -> Response:
         """Обновить расписание."""
         schedule = self.get_object_or_404_with_permission(
@@ -330,6 +391,11 @@ class ReportScheduleDetailView(APIView):
 
         return Response(serializer.data)
 
+    @extend_schema(
+        tags=["Schedules"],
+        summary="Удалить расписание",
+        responses={204: OpenApiResponse(description="Расписание удалено")},
+    )
     def delete(self, request: Request, schedule_id: int) -> Response:
         """Удалить расписание."""
         schedule = self.get_object_or_404_with_permission(
