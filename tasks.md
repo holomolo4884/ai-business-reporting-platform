@@ -256,11 +256,11 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 
 # R. Swagger и документация
 
-- [ ] R-01. Подключить drf-spectacular
-- [ ] R-02. Сделать endpoint `/api/schema/`
-- [ ] R-03. Сделать Swagger UI: `/api/docs/`
-- [ ] R-04. Улучшить описание request/response схем
-- [ ] R-05. Проверить авторизацию в Swagger
+- [x] R-01. Подключить drf-spectacular
+- [x] R-02. Сделать endpoint `/api/schema/`
+- [x] R-03. Сделать Swagger UI: `/api/docs/`
+- [x] R-04. Улучшить описание request/response схем
+- [x] R-05. Проверить авторизацию в Swagger
 
 ---
 

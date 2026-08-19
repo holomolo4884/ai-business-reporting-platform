@@ -24,6 +24,9 @@ class OrderViewSet(viewsets.ModelViewSet):
     ordering = ["-order_date"]
 
     def get_queryset(self):
+        # Защита для генерации OpenAPI схемы
+        if getattr(self, "swagger_fake_view", False):
+            return Order.objects.none()
         # Пользователь видит только заказы своих организаций
         return (
             Order.objects.filter(organization__members__user=self.request.user)
@@ -60,6 +63,9 @@ class ExpenseViewSet(viewsets.ModelViewSet):
     ordering = ["-expense_date"]
 
     def get_queryset(self):
+        # Защита для генерации OpenAPI схемы
+        if getattr(self, "swagger_fake_view", False):
+            return Expense.objects.none()
         return (
             Expense.objects.filter(organization__members__user=self.request.user)
             .distinct()
