@@ -4,11 +4,20 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
+from accounts.throttles import LoginRateThrottle
 from accounts.views import MeView, RegisterView
 
 urlpatterns = [
     path("auth/register/", RegisterView.as_view(), name="register"),
-    path("auth/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
-    path("auth/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+    path(
+        "auth/token/",
+        TokenObtainPairView.as_view(throttle_classes=[LoginRateThrottle]),
+        name="token_obtain_pair",
+    ),
+    path(
+        "auth/token/refresh/",
+        TokenRefreshView.as_view(throttle_classes=[LoginRateThrottle]),
+        name="token_refresh",
+    ),
     path("auth/me/", MeView.as_view(), name="me"),
 ]

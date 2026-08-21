@@ -18,6 +18,7 @@ from reports.serializers import (
     ReportScheduleSerializer,
     ReportSerializer,
 )
+from reports.throttles import ReportGenerateThrottle
 
 
 class ReportGenerateView(APIView):
@@ -25,6 +26,7 @@ class ReportGenerateView(APIView):
 
     permission_classes = [IsAuthenticated]
     serializer_class = ReportGenerateSerializer
+    throttle_classes = [ReportGenerateThrottle]
 
     @extend_schema(
         tags=["Reports"],
