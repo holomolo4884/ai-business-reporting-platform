@@ -266,42 +266,44 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 
 # S. Права доступа и безопасность
 
-- [ ] S-01. Проверить IsAuthenticated на защищённых endpoint'ах
-- [ ] S-02. Сделать permissions для Organization
-- [ ] S-03. Сделать object permissions для Order, Expense, Report
-- [ ] S-04. Проверить работу ролей owner/admin/member
-- [ ] S-05. Убрать секреты из кода и использовать `.env`
-- [ ] S-06. Проверить валидацию входных данных
-- [ ] S-07. Добавить throttling для login и генерации отчётов
+- [x] S-01. Проверить IsAuthenticated на защищённых endpoint'ах (deny-by-default)
+- [x] S-02. Сделать permissions для Organization (через OrganizationMember)
+- [x] S-03. Сделать object permissions для Order, Expense, Report (через фильтрацию queryset)
+- [x] S-04. Проверить работу ролей owner/admin/member
+- [x] S-05. Убрать секреты из кода и использовать `.env`
+- [x] S-06. Проверить валидацию входных данных (Pydantic + DRF serializers)
+- [x] S-07. Добавить throttling для login и генерации отчётов
+- [x] S-08. Защита от SQL-инъекций и XSS
+- [x] S-09. CORS настройки
 
 ---
 
 # T. Тестирование
 
-- [ ] T-01. Установить pytest, pytest-django, pytest-cov
-- [ ] T-02. Настроить pytest в pyproject.toml или pytest.ini
-- [ ] T-03. Создать фабрики для User, Organization, Order, Expense
-- [ ] T-04. Написать тесты auth
-- [ ] T-05. Написать тесты organizations
-- [ ] T-06. Написать тесты orders/expenses
-- [ ] T-07. Написать тесты MetricsService
-- [ ] T-08. Написать тесты reports API
-- [ ] T-09. Написать тесты Celery-задач
-- [ ] T-10. Написать тесты AI client с fake provider
-- [ ] T-11. Написать тесты notification client
-- [ ] T-12. Проверить coverage
+- [x] T-01. Установить pytest, pytest-django, pytest-cov
+- [x] T-02. Настроить pytest в pytest.ini
+- [x] T-03. Создать фабрики для User, Organization, Order, Expense
+- [x] T-04. Написать тесты auth (accounts/tests/)
+- [x] T-05. Написать тесты organizations
+- [x] T-06. Написать тесты orders/expenses (business_data)
+- [x] T-07. Написать тесты MetricsService (metrics/tests/)
+- [x] T-08. Написать тесты reports API
+- [x] T-09. Написать тесты Celery-задач (reports + notifications)
+- [x] T-10. Написать тесты AI client (с mock провайдером)
+- [x] T-11. Написать тесты notification client
+- [ ] T-12. Проверить coverage и довести до 80%+
 
 ---
 
 # U. Логирование и наблюдаемость
 
-- [ ] U-01. Настроить базовое логирование Django
-- [ ] U-02. Опционально добавить структурированные логи
-- [ ] U-03. Логировать Celery-задачи
-- [ ] U-04. Логировать вызовы AI API без секретов
-- [ ] U-05. Логировать отправку уведомлений
-- [ ] U-06. Добавить health checks для Django и FastAPI
-- [ ] U-07. Подключить Flower
+- [x] U-01. Настроить базовое логирование Django
+- [x] U-02. Структурированные логи через structlog (в notification-service)
+- [x] U-03. Логировать Celery-задачи
+- [x] U-04. Логировать вызовы AI API без секретов
+- [x] U-05. Логировать отправку уведомлений (NotificationLog)
+- [x] U-06. Health checks для Django и FastAPI
+- [ ] U-07. Подключить Flower (в docker-compose)
 - [ ] U-08. Опционально подключить Sentry
 
 ---

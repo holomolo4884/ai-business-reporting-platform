@@ -1,7 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
 from django.conf import settings
-from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.validators import FileExtensionValidator, MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils import timezone
 
@@ -93,8 +93,14 @@ class Report(models.Model):
     # Файл отчёта
     pdf_file = models.FileField(
         upload_to="reports/pdf/%Y/%m/",
-        null=True,
         blank=True,
+        null=True,
+        validators=[
+            FileExtensionValidator(
+                allowed_extensions=["pdf"],
+                message="Только PDF файлы разрешены.",
+            ),
+        ],
         verbose_name="PDF file",
     )
 

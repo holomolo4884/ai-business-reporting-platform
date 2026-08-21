@@ -188,6 +188,17 @@ REST_FRAMEWORK = {
     "DEFAULT_PARSER_CLASSES": [
         "rest_framework.parsers.JSONParser",
     ],
+    # Rate limiting (throttling)
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "60/minute",  # 60 запросов/мин для анонимов
+        "user": "300/minute",  # 300 запросов/мин для авторизованных
+        "login": "5/minute",  # 5 попыток входа в минуту
+        "report_generate": "10/hour",  # 10 генераций в час (дорогая операция)
+    },
 }
 
 # =====================================
@@ -266,18 +277,53 @@ REST_FRAMEWORK = {
 }
 
 # =====================================
-# CORS
+# CORS (Cross-Origin Resource Sharing)
 # =====================================
 
-CORS_ALLOWED_ORIGINS = env.list(
-    "CORS_ALLOWED_ORIGINS",
-    default=[],
-)
+import os  # noqa: E402
 
-# В dev-режиме разрешаем все origins
-# В prod нужно явно указывать разрешённые домены
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
+# Разрешённые origins (whitelist, БЕЗ wildcard в production!)
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        "CORS_ALLOWED_ORIGINS",
+        "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000",
+    ).split(",")
+    if origin.strip()
+]
+
+# Разрешаем credentials (cookies, Authorization header)
+CORS_ALLOW_CREDENTIALS = True
+
+# Разрешённые HTTP методы
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
+
+# Разрешённые заголовки
+CORS_ALLOW_HEADERS = [
+    "accept",
+    "accept-encoding",
+    "authorization",
+    "content-type",
+    "dnt",
+    "origin",
+    "user-agent",
+    "x-csrftoken",
+    "x-requested-with",
+    "x-api-key",
+]
+
+# Максимальный возраст preflight кеша (1 час)
+CORS_PREFLIGHT_MAX_AGE = 3600
+
+# CSRF trusted origins (должен совпадать с CORS_ALLOWED_ORIGINS)
+CSRF_TRUSTED_ORIGINS = CORS_ALLOWED_ORIGINS
 
 # =====================================
 # Redis / Cache
