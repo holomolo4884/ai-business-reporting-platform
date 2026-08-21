@@ -267,7 +267,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 # S. Права доступа и безопасность
 
 - [x] S-01. Проверить IsAuthenticated на защищённых endpoint'ах
-- [ ] S-02. Сделать permissions для Organization
+- [x] S-02. Сделать permissions для Organization
 - [ ] S-03. Сделать object permissions для Order, Expense, Report
 - [ ] S-04. Проверить работу ролей owner/admin/member
 - [ ] S-05. Убрать секреты из кода и использовать `.env`
