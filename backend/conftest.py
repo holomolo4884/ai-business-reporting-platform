@@ -11,6 +11,21 @@ from metrics.services import MetricsService
 from organizations.models import Organization, OrganizationMember
 
 
+@pytest.fixture(autouse=True)
+def clear_cache():
+    """
+    Очищает Django cache перед каждым тестом.
+
+    Это сбрасывает счётчики rate limiting (throttling),
+    чтобы тесты не падали с 429 Too Many Requests.
+    """
+    from django.core.cache import cache
+
+    cache.clear()
+    yield
+    cache.clear()
+
+
 @pytest.fixture(scope="session")
 def django_db_setup():
     """Настройка БД для тестов с переопределением настроек Celery."""
