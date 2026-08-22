@@ -310,10 +310,10 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 
 # V. Docker
 
-- [ ] V-01. Создать Dockerfile для backend
-- [ ] V-02. Создать Dockerfile для notification-service
-- [ ] V-03. Добавить сервис db в docker-compose
-- [ ] V-04. Добавить сервис redis в docker-compose
+- [x] V-01. Создать Dockerfile для backend
+- [x] V-02. Создать Dockerfile для notification-service
+- [x] V-03. Добавить сервис db в docker-compose
+- [x] V-04. Добавить сервис redis в docker-compose
 - [ ] V-05. Добавить сервис api в docker-compose
 - [ ] V-06. Добавить сервис worker в docker-compose
 - [ ] V-07. Добавить сервис beat в docker-compose

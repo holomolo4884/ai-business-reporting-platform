@@ -1,0 +1,25 @@
+# Inherit all base dependencies
+-r base.txt
+
+# ============================================
+# Production-only dependencies
+# ============================================
+
+# Production WSGI server
+gunicorn>=22.0,<23.0
+
+# Static files serving
+whitenoise>=6.5.0,<7.0
+
+# PostgreSQL driver (with binary for faster install)
+psycopg[binary]>=3.1.0,<4.0
+
+# Celery monitoring
+flower>=2.0.0,<3.0
+
+# Optional: Sentry for error tracking
+sentry-sdk>=1.40.0,<3.0
+
+# Optional: Cloud storage (S3)
+django-storages>=1.14.0,<2.0
+boto3>=1.34.0,<2.0
