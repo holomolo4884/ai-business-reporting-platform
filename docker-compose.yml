@@ -1,4 +1,7 @@
 services:
+  # ============================================
+  # База данных PostgreSQL
+  # ============================================
   db:
     image: postgres:16
     container_name: reporting_postgres
@@ -16,7 +19,12 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - reporting_network
 
+  # ============================================
+  # Redis (broker + cache)
+  # ============================================
   redis:
     image: redis:7-alpine
     container_name: reporting_redis
@@ -27,11 +35,167 @@ services:
       - redis_data:/data
     command: redis-server --appendonly yes
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - reporting_network
+
+  # ============================================
+  # Django API (gunicorn)
+  # ============================================
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: reporting_api
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.prod
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      NOTIFICATION_SERVICE_URL: http://notification-service:8001
+      RUN_MIGRATIONS: "true"
+      COLLECT_STATIC: "true"
+    volumes:
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - reporting_network
+
+  # ============================================
+  # Celery Worker
+  # ============================================
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: reporting_worker
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.prod
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+      NOTIFICATION_SERVICE_URL: http://notification-service:8001
+    volumes:
+      - media_data:/app/media
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_started
+    command: ["celery", "-A", "config", "worker", "--loglevel=info", "--concurrency=2"]
+    networks:
+      - reporting_network
+
+  # ============================================
+  # Celery Beat (расписания)
+  # ============================================
+  beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: reporting_beat
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.prod
+      POSTGRES_HOST: db
+      POSTGRES_PORT: "5432"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["celery", "-A", "config", "beat", "--loglevel=info"]
+    networks:
+      - reporting_network
+
+  # ============================================
+  # Flower (мониторинг Celery)
+  # ============================================
+  flower:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: reporting_flower
+    restart: unless-stopped
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/1
+    ports:
+      - "5555:5555"
+    depends_on:
+      redis:
+        condition: service_healthy
+    command: ["celery", "-A", "config", "flower", "--port=5555", "--address=0.0.0.0"]
+    networks:
+      - reporting_network
+
+  # ============================================
+  # Notification Service (FastAPI)
+  # ============================================
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: reporting_notifications
+    restart: unless-stopped
+    env_file:
+      - .env
+    networks:
+      - reporting_network
+
+  # ============================================
+  # Nginx (reverse proxy)
+  # ============================================
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: reporting_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - static_data:/app/staticfiles:ro
+      - media_data:/app/media:ro
+    depends_on:
+      - api
+      - notification-service
+    networks:
+      - reporting_network
 
 volumes:
   postgres_data:
   redis_data:
+  media_data:
+  static_data:
+
+networks:
+  reporting_network:
+    driver: bridge
