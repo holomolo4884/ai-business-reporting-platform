@@ -321,7 +321,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 - [x] V-09. Добавить сервис notification-service в docker-compose
 - [x] V-10. Добавить сервис nginx в docker-compose
 - [x] V-11. Настроить volumes для PostgreSQL и файлов
-- [ ] V-12. Проверить сборку и запуск: `docker compose up --build`
+- [x] V-12. Проверить сборку и запуск: `docker compose up --build`
 
 ---
 
@@ -331,7 +331,7 @@ A → B → C → D → E → F → G → H → I → J → K → L → M → N 
 - [x] W-02. Настроить проксирование `/api/` на Django
 - [x] W-03. Настроить проксирование `/notify/` на FastAPI notification-service
 - [x] W-04. Настроить static/media при необходимости
-- [ ] W-05. Проверить работу API через Nginx
+- [x] W-05. Проверить работу API через Nginx
 
 ---
 
