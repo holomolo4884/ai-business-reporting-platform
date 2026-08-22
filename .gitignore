@@ -170,6 +170,7 @@ cython_debug/
 backend/media/
 .pdf
 report_102.pdf
+report_1.pdf
 
 # Notification service
 notification-service/.venv/
