@@ -145,7 +145,10 @@ services:
       dockerfile: Dockerfile
     container_name: reporting_flower
     restart: unless-stopped
+    env_file:
+      - .env
     environment:
+      DJANGO_SETTINGS_MODULE: config.settings.prod
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/1
     ports:
@@ -153,7 +156,7 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-    command: ["celery", "-A", "config", "flower", "--port=5555", "--address=0.0.0.0"]
+    command: [ "celery", "-A", "config", "flower", "--port=5555", "--address=0.0.0.0" ]
     networks:
       - reporting_network
 

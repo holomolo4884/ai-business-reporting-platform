@@ -5,7 +5,7 @@ Django>=5.1,<6.0
 djangorestframework>=3.15,<4.0
 django-filter>=24.3
 django-cors-headers>=4.4
-djangorestframework-simplejwt>=5.3
+djangorestframework-simplejwt>=5.3.1
 
 # OpenAPI / Swagger
 drf-spectacular>=0.27
