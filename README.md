@@ -6,7 +6,7 @@
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://docker.com)
 [![Tests](https://img.shields.io/badge/Tests-166%20passed-success.svg)](#)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-![CI](https://github.com/holomolo4884/ai-business-reporting-platform/actions/workflows/ci.yaml)
+![CI](https://github.com/holomolo4884/ai-business-reporting-platform/actions/workflows/ci.yaml/badge.svg)
 
 > **AI-powered платформа для автоматической генерации бизнес-отчётов**
 > Анализирует продажи, расходы и финансы, создаёт PDF-отчёты с инсайтами и отправляет уведомления через Email/Telegram/Webhook.
