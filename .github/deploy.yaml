@@ -1,0 +1,44 @@
+name: Deploy
+# Триггер: запуск при пуше в ветку main
+
+on:
+  push:
+    branches: [main]
+
+# ВАЖНО: Этот пайплайн требует настройки секретов в репозитории GitHub:
+# - VPS_HOST — IP-адрес или домен вашего сервера
+# - VPS_USER — пользователь SSH (например, ubuntu, deploy, root)
+# - VPS_SSH_KEY — приватный SSH-ключ для подключения к серверу
+# Для включения деплоя:
+# 1. Добавьте секреты в Settings → Secrets and variables → Actions
+# 2. Убедитесь, что на сервере установлен Docker и docker-compose
+# 3. На сервере должен быть клонирован репозиторий в /opt/reporting
+# 4. Пользователь SSH должен иметь права на выполнение docker команд
+# Пока секреты не настроены, job будет пропускаться (if условие).
+
+jobs:
+  deploy:
+    name: Deploy to VPS
+    runs-on: ubuntu-latest
+    # Job выполняется только если все секреты настроены
+    if: ${{ vars.VPS_HOST != '' && secrets.VPS_HOST != '' && secrets.VPS_USER != '' && secrets.VPS_SSH_KEY != '' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            cd /opt/reporting
+            git pull origin main
+            docker compose up -d --build
+      - name: Deployment summary
+        run: |
+          echo "✅ Deployment completed successfully!"
+
+          echo "📍 Server: ${{ secrets.VPS_HOST }}"
+
+          echo "📁 Path: /opt/reporting"
